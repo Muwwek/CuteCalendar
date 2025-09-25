@@ -5,91 +5,139 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#f0f4f8",
+  },
+  header: {
+    marginBottom: 20,
+    alignItems: "center",
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 16,
-    color: "#111827",
+    color: "#1e3a8a",
+    marginBottom: 5,
+  },
+  titleUnderline: {
+    width: 60,
+    height: 4,
+    backgroundColor: "#3b82f6",
+    borderRadius: 2,
+  },
+  searchContainer: {
+    position: "relative",
+    marginBottom: 20,
+  },
+  searchInput: {
+    height: 50,
+    borderColor: "#d1d5db",
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingLeft: 50,
+    backgroundColor: "#fff",
+    fontSize: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  searchIcon: {
+    position: "absolute",
+    left: 16,
+    top: 13,
+    zIndex: 1,
   },
 
-  // 🔹 ใช้กับ SectionList (หัววันที่)
+  // Section Header
+  sectionHeaderContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginVertical: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
   sectionHeader: {
     fontSize: 16,
     fontWeight: "bold",
-    backgroundColor: "#e5e7eb",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    marginTop: 12,
-    marginBottom: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     color: "#1f2937",
   },
 
+  // Card
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderLeftWidth: 4,
+    borderLeftColor: "#ff8fab",
 
     // Shadow iOS
     shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
 
     // Shadow Android
-    elevation: 3,
+    elevation: 4,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 8,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#111827",
+    flex: 1,
+    marginRight: 10,
   },
   time: {
     fontSize: 14,
-    color: "#374151",
+    color: "#4b5563",
     marginBottom: 4,
   },
   by: {
     fontSize: 12,
     color: "#6b7280",
+    fontStyle: "italic",
   },
 
-  // 🔹 Tag สี
+  // Tags - ปรับสีตามที่กำหนดใหม่
   tag: {
-    fontSize: 12,
+    fontSize: 11,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 12,
     overflow: "hidden",
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: "700",
+    textAlign: "center",
+    minWidth: 70,
   },
   workTag: {
-    backgroundColor: "#ef4444", // แดง
+    backgroundColor: "#6b7280", // สีเทา - Work
+  },
+  urgentTag: {
+    backgroundColor: "#ef4444", // สีแดง - งานเร่งด่วน
+  },
+  secondaryTag: {
+    backgroundColor: "#3b82f6", // สีน้ำเงิน - งานรอง
+  },
+  restTag: {
+    backgroundColor: "#10b981", // สีเขียว - พักผ่อน
   },
   eventTag: {
-    backgroundColor: "#3b82f6", // น้ำเงิน
+    backgroundColor: "#f59e0b", // สีเหลือง - Event
   },
   personalTag: {
-    backgroundColor: "#10b981", // เขียว
-  },
-  searchInput: {
-    height: 40,
-    borderColor: "#d1d5db",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#8b5cf6", // สีม่วง - Personal
   },
 });

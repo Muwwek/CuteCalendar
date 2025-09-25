@@ -1,10 +1,10 @@
 // app/(tabs)/schedule.tsx
-import { View, Text, SectionList, TextInput } from "react-native"; // ✅ เพิ่ม TextInput
-import { useState } from "react"; // ✅ สำหรับ state search
+import { View, Text, SectionList, TextInput } from "react-native";
+import { useState } from "react";
 import { styles } from "./ScheduleStyles";
 
 export default function ScheduleScreen() {
-  const [search, setSearch] = useState(""); // ✅ เพิ่ม state สำหรับ search
+  const [search, setSearch] = useState("");
 
   const yearData = generateYearData(2025);
 
@@ -27,16 +27,23 @@ export default function ScheduleScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ตารางกิจกรรม ปี 2025</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>ตารางกิจกรรม ปี 2025</Text>
+        <View style={styles.titleUnderline} />
+      </View>
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="ค้นหากิจกรรม..."
-        value={search}
-        onChangeText={setSearch}
-      />
-
-      <Text>--------------------------------</Text>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="ค้นหากิจกรรม..."
+          placeholderTextColor="#9ca3af"
+          value={search}
+          onChangeText={setSearch}
+        />
+        <View style={styles.searchIcon}>
+          <Text>🔍</Text>
+        </View>
+      </View>
 
       <SectionList
         sections={yearData}
@@ -50,11 +57,12 @@ export default function ScheduleScreen() {
               <Text
                 style={[
                   styles.tag,
-                  item.type === "Work"
-                    ? styles.workTag
-                    : item.type === "Event"
-                    ? styles.eventTag
-                    : styles.personalTag,
+                  item.type === "Work" ? styles.workTag :
+                  item.type === "งานเร่งด่วน" ? styles.urgentTag :
+                  item.type === "งานรอง" ? styles.secondaryTag :
+                  item.type === "พักผ่อน" ? styles.restTag :
+                  item.type === "Event" ? styles.eventTag :
+                  styles.personalTag,
                 ]}
               >
                 {item.type}
@@ -65,7 +73,9 @@ export default function ScheduleScreen() {
           </View>
         )}
         renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionHeader}>{title}</Text>
+          </View>
         )}
       />
     </View>
