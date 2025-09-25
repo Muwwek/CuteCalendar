@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
   titleUnderline: {
     width: 60,
     height: 4,
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#ff8fab",
     borderRadius: 2,
   },
   searchContainer: {
