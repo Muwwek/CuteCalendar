@@ -11,12 +11,24 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="HomeScreen"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="login"
+        options={{
+          href: null, // 👈 บอก router ว่าไม่ต้องโชว์ใน Tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="RegisterPage"
+        options={{
+          href: null, // 👈 บอก router ว่าไม่ต้องโชว์ใน Tab bar
         }}
       />
       <Tabs.Screen
