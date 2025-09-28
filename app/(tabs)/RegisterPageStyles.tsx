@@ -1,74 +1,150 @@
-//app/(tabs)/RegisterPageStyles.tsx
+// app/(tabs)/RegisterPageStyles.tsx
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#fff", 
+    backgroundColor: "#F8F9FA", 
     justifyContent: "center", 
     alignItems: "center", 
     padding: 24 
   },
   backButton: {
     position: "absolute",
-    top: 50,
+    top: 60,
     left: 20,
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   backButtonText: {
     color: "#007AFF",
-    marginLeft: 5,
+    marginLeft: 6,
     fontSize: 16,
+    fontWeight: "600",
   },
   title: { 
-    fontSize: 24, 
-    fontWeight: "bold", 
-    marginBottom: 24 
+    fontSize: 28, 
+    fontWeight: "700", 
+    marginBottom: 32,
+    color: "#34495E",
+    textAlign: "center",
   },
   input: { 
+    backgroundColor: "#FFFFFF",
     borderWidth: 1, 
-    borderColor: "#ccc", 
-    padding: 12, 
-    borderRadius: 8, 
+    borderColor: "#E5E5EA", 
+    padding: 14, 
+    borderRadius: 16, 
     width: "100%", 
-    marginBottom: 12 
+    marginBottom: 16,
+    fontSize: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   passwordContainer: { 
     flexDirection: "row", 
     alignItems: "center", 
+    backgroundColor: "#FFFFFF",
     borderWidth: 1, 
-    borderColor: "#ccc", 
-    borderRadius: 8, 
+    borderColor: "#E5E5EA", 
+    borderRadius: 16, 
     width: "100%", 
-    marginBottom: 12, 
-    paddingRight: 10 
+    marginBottom: 16, 
+    paddingRight: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   passwordInput: { 
     flex: 1, 
-    padding: 12 
+    padding: 14,
+    fontSize: 16,
+    color: "#2D3436",
   },
   eyeButton: { 
-    padding: 4 
+    padding: 8,
+    borderRadius: 6,
   },
-  buttonContainer: {
+  registerButton: {
+    backgroundColor: "#ff8fab",
+    paddingVertical: 16,
+    borderRadius: 16,
     width: "100%",
-    marginBottom: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+    shadowColor: "#FF6B81",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  registerButtonDisabled: {
+    backgroundColor: "rgba(255, 107, 129, 0.5)",
+  },
+  registerButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  loginLinkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loginText: {
+    fontSize: 16,
+    color: "#636E72",
+    fontWeight: "400",
   },
   loginLink: {
-    marginTop: 10,
-  },
-  loginLinkText: {
-    color: "#007AFF",
     fontSize: 16,
+    color: "#6C5CE7",
+    fontWeight: "600",
+    marginLeft: 6,
+    textDecorationLine: "underline",
   },
-    resetButton: {
-    marginBottom: 10,
-    padding: 10,
+  loginLinkDisabled: {
+    color: "rgba(108, 92, 231, 0.5)",
   },
-  resetButtonText: {
-    color: "#FF3B30",
+  statusText: {
+    fontSize: 15,
+    textAlign: "center",
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  errorText: {
+    color: "#FF4757",
+    backgroundColor: "#FFECEC",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     fontSize: 14,
     textAlign: "center",
+    marginBottom: 12,
+  },
+  successText: {
+    color: "#27AE60",
+    backgroundColor: "#E6F9EC",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 12,
   },
 });

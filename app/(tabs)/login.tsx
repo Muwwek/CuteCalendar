@@ -1,204 +1,215 @@
 // app/(tabs)/login.tsx
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useState, useEffect } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  StatusBar,
   Text,
   TextInput,
-  Button,
-  Alert,
   TouchableOpacity,
-  ActivityIndicator
+  View
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./LoginStyles";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordStatus, setPasswordStatus] = useState<"correct" | "wrong" | "">("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [passwordStatus, setPasswordStatus] = useState<"correct" | "wrong" | "">("");
 
-  // ฟังก์ชันดึง URL base ของ API
-  const getApiBaseUrl = () => {
-    // สำหรับ Android emulator ใช้ 10.0.2.2 เพื่อเข้าถึง localhost ของ host machine
-    // สำหรับ iOS simulator และการทดสอบจริงใช้ localhost
-    return "http://localhost:3000";
-  };
+  useEffect(() => {
+    if (params.message) {
+      Alert.alert("Success", params.message.toString());
+      if (params.registeredEmail) setEmail(params.registeredEmail.toString());
+    }
+  }, [params]);
+
+  const API_URL = "http://localhost:3000";
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "กรุณากรอก Email และ Password");
+      Alert.alert("Error", "Please enter Email and Password");
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert("Error", "รูปแบบ Email ไม่ถูกต้อง");
+      Alert.alert("Error", "Invalid email format");
       return;
     }
 
     setLoading(true);
     setPasswordStatus("");
 
-    console.log("📱 Starting login process...");
-    console.log("📧 Email:", email);
-
     try {
-      const apiUrl = `${getApiBaseUrl()}/login`;
-      console.log("🌐 Calling API:", apiUrl);
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
-      console.log("✅ Response status:", response.status);
       
       const data = await response.json();
-      console.log("📄 Response data:", data);
 
       if (data.success) {
         setPasswordStatus("correct");
-        console.log("🎉 Login successful!");
-        
-        Alert.alert("Success", data.message, [
-          { 
-            text: "OK", 
-            onPress: () => {
-              console.log("🔄 Navigating to HomeScreen...");
-              router.replace("/(tabs)/HomeScreen");
-            }
-          }
-        ]);
-        
-        // เด้งไปหน้า HomeScreen อัตโนมัติหลังจาก 1 วินาที
+
+        // reset input
+        setEmail("");
+        setPassword("");
+
+        // send username + email to HomeScreen
         setTimeout(() => {
-          console.log("🔄 Auto-navigating to HomeScreen...");
-          router.replace("/(tabs)/HomeScreen");
+          router.navigate({
+            pathname: "/(tabs)/HomeScreen",
+            params: {
+              email: data.email,
+              username: data.username,
+            },
+          });
         }, 1000);
         
       } else {
         setPasswordStatus("wrong");
-        console.log("❌ Login failed:", data.message);
         Alert.alert("Error", data.message);
       }
     } catch (error) {
-      console.log("💥 Network error:", error);
       setPasswordStatus("wrong");
-      Alert.alert(
-        "Connection Error", 
-        `ไม่สามารถเชื่อมต่อ server ได้\n\nตรวจสอบว่า:\n• Server กำลังทำงานอยู่ที่ ${getApiBaseUrl()}\n• Network connection\n\nข้อผิดพลาด: ${error}`
-      );
+      Alert.alert("Connection Error", `Cannot connect to server\n${error}`);
     } finally {
       setLoading(false);
-      console.log("🏁 Login process finished");
     }
   };
 
   const handleRegister = () => {
-    console.log("🔗 Navigating to RegisterPage...");
+    setPasswordStatus("");
     router.push("/(tabs)/RegisterPage");
   };
 
-  const testConnection = async () => {
-    try {
-      console.log("🔌 Testing server connection...");
-      const apiUrl = `${getApiBaseUrl()}/`;
-      console.log("Testing URL:", apiUrl);
-      
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-      console.log("Server test response:", data);
-      Alert.alert("Connection Test", `Server: ${data.message}\nURL: ${apiUrl}`);
-    } catch (error) {
-      console.log("Connection test failed:", error);
-      Alert.alert("Connection Test", `ไม่สามารถเชื่อมต่อ server ได้ที่ ${getApiBaseUrl()}\n\nError: ${error}`);
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={[
-          styles.input,
-          passwordStatus === "wrong" && styles.inputError
-        ]}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        editable={!loading}
-        placeholderTextColor="#999"
-      />
-
-      <View style={[
-        styles.passwordContainer,
-        passwordStatus === "wrong" && styles.inputError
-      ]}>
-        <TextInput
-          placeholder="Password"
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
-          style={styles.passwordInput}
-          editable={!loading}
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity
-          onPress={() => setShowPassword(!showPassword)}
-          style={styles.eyeButton}
-          disabled={loading}
-        >
-          <Ionicons
-            name={showPassword ? "eye-off" : "eye"}
-            size={22}
-            color="#555"
-          />
-        </TouchableOpacity>
-      </View>
-
-      {passwordStatus === "correct" && (
-        <Text style={styles.correctText}>✅ เข้าสู่ระบบสำเร็จ</Text>
-      )}
-      {passwordStatus === "wrong" && (
-        <Text style={styles.errorText}>❌ Email หรือ Password ไม่ถูกต้อง</Text>
-      )}
-
-      {/* ปุ่ม Login */}
-      <View style={styles.buttonContainer}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.loadingText}>กำลังเข้าสู่ระบบ...</Text>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      <View style={styles.container}>
+        <View style={styles.decorativeCircle1} />
+        <View style={styles.decorativeCircle2} />
+        
+        <View style={styles.formContainer}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.title}>Welcome</Text>
+            <Text style={styles.subtitle}>Login to use SmartPriorityLife</Text>
           </View>
-        ) : (
-          <Button 
-            title="Login" 
-            onPress={handleLogin} 
-            disabled={loading}
-          />
-        )}
-      </View>
 
-      {/* ปุ่ม Register */}
-      <View style={styles.buttonContainer}>
-        <Button 
-          title="Register" 
-          onPress={handleRegister} 
-          color="#888" 
-          disabled={loading}
-        />
+          {/* Email Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              style={[
+                styles.input, 
+                passwordStatus === "wrong" && styles.inputError,
+                passwordStatus === "correct" && styles.inputSuccess
+              ]}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={!loading}
+              placeholderTextColor="#95a5a6"
+            />
+          </View>
+
+          {/* Password Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Password</Text>
+            <View style={[
+              styles.passwordContainer, 
+              passwordStatus === "wrong" && styles.inputError,
+              passwordStatus === "correct" && styles.inputSuccess
+            ]}>
+              <TextInput
+                placeholder="Enter your password"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                style={styles.passwordInput}
+                editable={!loading}
+                placeholderTextColor="#95a5a6"
+              />
+              <TouchableOpacity 
+                onPress={() => setShowPassword(!showPassword)} 
+                style={styles.eyeButton} 
+                disabled={loading}
+              >
+                <Ionicons 
+                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={24} 
+                  color="#7f8c8d" 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Status Messages */}
+          {passwordStatus === "wrong" && (
+            <Text style={styles.errorText}>
+              <Ionicons name="alert-circle-outline" size={16} color="#e74c3c" /> 
+              {" "}Incorrect email or password
+            </Text>
+          )}
+
+          {passwordStatus === "correct" && (
+            <Text style={styles.correctText}>
+              <Ionicons name="checkmark-circle-outline" size={16} color="#27ae60" /> 
+              {" "}Login successful! Redirecting...
+            </Text>
+          )}
+
+          {/* Buttons */}
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <TouchableOpacity style={styles.loginButton} disabled>
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#ffffff" />
+                  <Text style={styles.loadingText}>Logging in...</Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={styles.loginButton} 
+                onPress={handleLogin} 
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.loginButtonText}>
+                  <Ionicons name="log-in-outline" size={20} color="#ffffff" />
+                  {" "}Login
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.divider}>
+              <Text style={styles.dividerText}>or</Text>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.registerButton} 
+              onPress={handleRegister} 
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.registerButtonText}>
+                <Ionicons name="person-add-outline" size={18} color="#7f8c8d" />
+                {" "}Register
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-    </View>
+    </>
   );
 }
