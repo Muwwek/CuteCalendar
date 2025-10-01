@@ -1,3 +1,4 @@
+// app/(tabs)/MainWorkStyles.tsx
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -36,6 +37,32 @@ export const styles = StyleSheet.create({
     opacity: 0.8,
     marginTop: 4,
   },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ff4d6d',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginTop: 12,
+    alignSelf: 'flex-start',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  backButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 16,
+  },
+
+  // --- Wrapper for Scrollable Content ---
+  contentWrapper: {
+    flex: 1,
+  },
 
   // --- Calendar Styles ---
   calendarWrapper: {
@@ -52,65 +79,89 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  calendar: {
-    borderRadius: 12,
-  },
 
-  // --- Daily Tasks Table Styles ---
+  // --- Daily Tasks (Card View) Styles ---
   dailyTasksContainer: {
-    flex: 1,
     marginTop: 24,
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 100, // เพิ่มพื้นที่ด้านล่างเผื่อปุ่ม FAB
   },
   dailyTasksTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#ff4d6d",
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2d3748',
+    marginBottom: 16,
+  },
+  taskCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  taskCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  taskCardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2d3748',
+    flex: 1,
+    marginRight: 8,
+  },
+  taskCardBody: {
     marginBottom: 12,
   },
-  tableContainer: {
-    flex: 1,
-    backgroundColor: '#ffffff',
+  taskCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  taskCardText: {
+    fontSize: 14,
+    color: '#4a5568',
+    marginLeft: 8,
+    lineHeight: 20,
+  },
+  taskCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#edf2f7',
+    paddingTop: 12,
+  },
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#edf2f7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ffccd9',
-    overflow: 'hidden',
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#fff0f3',
-    borderBottomWidth: 1,
-    borderColor: '#ffccd9',
-    paddingHorizontal: 10,
-    paddingVertical: 12,
+  tagText: {
+    marginLeft: 6,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4a5568',
   },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: '#ffccd9',
-    paddingHorizontal: 10,
-    paddingVertical: 14,
+  noTasksCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 24,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  headerCell: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ff4d6d',
-  },
-  cellText: {
-    fontSize: 14,
-    color: '#2d3748',
-  },
-  timeCell: {
-    flex: 0.4,
-  },
-  taskCell: {
-    flex: 1,
-  },
-  priorityCell: {
-    flex: 0.5,
-    alignItems: 'center',
+  noTasksText: {
+    fontSize: 16,
+    color: "#a0aec0",
   },
   priorityBadge: {
     paddingHorizontal: 10,
@@ -120,41 +171,187 @@ export const styles = StyleSheet.create({
   priorityText: {
     fontSize: 12,
     color: "#ffffff",
-    fontWeight: "600",
+    fontWeight: "bold",
   },
-  noTasksCard: {
-    backgroundColor: "#ffffff",
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 150,
+  
+  // --- Add Task FAB ---
+  addTaskButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ff4d6d',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  noTasksText: {
-    fontSize: 16,
-    color: "#999",
-    fontStyle: 'italic',
-  },
-  // สไตล์สำหรับปุ่มกลับ
-backButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#ff4d6d',
-  paddingVertical: 8,
-  paddingHorizontal: 16,
-  borderRadius: 20,
-  marginTop: 12,
-  alignSelf: 'flex-start',
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.2,
-  shadowRadius: 2,
-  elevation: 3,
-},
-backButtonText: {
-  color: '#FFFFFF',
-  fontWeight: 'bold',
-  marginLeft: 8,
-  fontSize: 16,
-},
-});
 
+  // --- Add Task Modal Styles ---
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '90%', // จำกัดความสูงของ Modal
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 10,
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ff4d6d',
+    flex: 1,
+  },
+  formLabel: {
+    fontSize: 16,
+    color: '#4a5568',
+    marginBottom: 8,
+    marginTop: 10,
+    fontWeight: '600',
+  },
+  input: {
+    backgroundColor: '#f7fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+
+  // ✅ Styles for new Date/Time/All-day picker
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    marginVertical: 5,
+  },
+  allDayText: {
+    fontSize: 16,
+    color: '#2d3748',
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f7fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    marginVertical: 5,
+  },
+  dateTimeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4a5568',
+  },
+  dateTimeValue: {
+    fontSize: 16,
+    color: '#2d3748',
+  },
+  modalCalendarContainer: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  timePickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+    paddingVertical: 10,
+    backgroundColor: '#f7fafc',
+    borderRadius: 8,
+  },
+  timePickerBox: {
+    alignItems: 'center',
+  },
+  timePickerInput: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingVertical: 8,
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    width: 70,
+    marginVertical: 5,
+  },
+  timePickerSeparator: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginHorizontal: 10,
+    color: '#4a5568',
+  },
+
+
+  prioritySelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  priorityOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  priorityOptionText: {
+    fontWeight: '600',
+  },
+  
+  // ✅ Styles for Status Selector
+  statusSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  statusOption: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 20,
+      borderWidth: 1,
+  },
+  statusOptionText: {
+      fontWeight: '600',
+  },
+
+  buttonRow: {
+    marginTop: 25,
+    marginBottom: 20,
+  },
+  submitButton: {
+    backgroundColor: '#ff4d6d',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
