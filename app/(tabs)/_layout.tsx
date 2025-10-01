@@ -46,6 +46,12 @@ export default function TabsLayout() {
           href: null, // ซ่อนจาก Tab bar — เข้าได้เฉพาะ push จากหน้าอื่น
         }}
       />
+      <Tabs.Screen
+        name="MainWork"
+        options={{
+          href: null, // ซ่อนจาก Tab bar
+        }}
+      />
     </Tabs>
   );
 }

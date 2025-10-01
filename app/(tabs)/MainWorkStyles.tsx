@@ -1,7 +1,7 @@
-// app/(tabs)/MainWorkStyles.tsx
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  // --- General Styles ---
   container: {
     flex: 1,
     backgroundColor: "#ffe6ec",
@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#ffe6ec",
   },
   loadingText: {
     marginTop: 12,
@@ -25,25 +26,26 @@ export const styles = StyleSheet.create({
     borderBottomColor: "#ffccd9",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#ff4d6d",
   },
   headerSubtitle: {
     fontSize: 14,
     color: "#ff4d6d",
-    marginTop: 4,
     opacity: 0.8,
+    marginTop: 4,
   },
+
+  // --- Calendar Styles ---
   calendarWrapper: {
-    flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   calendarContainer: {
-    flex: 1,
     backgroundColor: "#ffffff",
     borderRadius: 16,
-    padding: 12,
+    padding: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -53,102 +55,84 @@ export const styles = StyleSheet.create({
   calendar: {
     borderRadius: 12,
   },
-  modalBackground: {
+
+  // --- Daily Tasks Table Styles ---
+  dailyTasksContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    marginTop: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
-  modalBox: {
-    width: "90%",
-    maxHeight: "80%",
-    backgroundColor: "#ffffff",
-    padding: 24,
-    borderRadius: 20,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  modalTitle: {
+  dailyTasksTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#ff4d6d",
     marginBottom: 12,
-    textAlign: "center",
   },
-  divider: {
-    height: 1,
-    backgroundColor: "#ffccd9",
-    marginBottom: 16,
-  },
-  tasksScrollView: {
-    maxHeight: 400,
-  },
-  taskCard: {
-    backgroundColor: "#f9f9f9",
-    padding: 16,
+  tableContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
     borderRadius: 12,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#ff4d6d",
+    borderWidth: 1,
+    borderColor: '#ffccd9',
+    overflow: 'hidden',
   },
-  taskHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#fff0f3',
+    borderBottomWidth: 1,
+    borderColor: '#ffccd9',
+    paddingHorizontal: 10,
+    paddingVertical: 12,
   },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2d2d2d",
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ffccd9',
+    paddingHorizontal: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  headerCell: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ff4d6d',
+  },
+  cellText: {
+    fontSize: 14,
+    color: '#2d3748',
+  },
+  timeCell: {
+    flex: 0.4,
+  },
+  taskCell: {
     flex: 1,
   },
+  priorityCell: {
+    flex: 0.5,
+    alignItems: 'center',
+  },
   priorityBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
-    marginLeft: 8,
+    borderRadius: 12,
   },
   priorityText: {
     fontSize: 12,
     color: "#ffffff",
     fontWeight: "600",
   },
-  taskDescription: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-    lineHeight: 20,
+  noTasksCard: {
+    backgroundColor: "#ffffff",
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 150,
   },
-  taskDetails: {
-    marginTop: 8,
-  },
-  taskDetailText: {
-    fontSize: 13,
-    color: "#888",
-    marginBottom: 4,
-  },
-  noEventText: {
+  noTasksText: {
     fontSize: 16,
     color: "#999",
-    textAlign: "center",
-    fontStyle: "italic",
-    paddingVertical: 32,
-  },
-  closeButton: {
-    marginTop: 20,
-    backgroundColor: "#ff4d6d",
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    elevation: 2,
-  },
-  closeButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
+    fontStyle: 'italic',
   },
 });
+
