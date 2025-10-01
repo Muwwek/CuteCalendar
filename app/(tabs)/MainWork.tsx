@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  TouchableOpacity, // เพิ่มเข้ามา
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router"; // เพิ่ม useRouter
+import { Ionicons } from "@expo/vector-icons"; // เพิ่มเข้ามา
 
 // นำเข้า styles จากไฟล์แยกเพื่อความเรียบร้อย
 import { styles } from "./MainWorkStyles";
@@ -38,6 +40,7 @@ interface Task {
 
 export default function CalendarScreen() {
   const params = useLocalSearchParams();
+  const router = useRouter(); // เรียกใช้ useRouter
   const { user_id } = params;
 
   const today = new Date().toISOString().split("T")[0];
@@ -79,7 +82,6 @@ export default function CalendarScreen() {
     if (user_id) {
       fetchTasks(Number(user_id));
     } else {
-      // ไม่ต้องแจ้งเตือนถ้า user_id ไม่มี, แค่ไม่โหลดข้อมูล
       setLoading(false);
     }
   }, [user_id]);
@@ -93,6 +95,11 @@ export default function CalendarScreen() {
   }, [selectedDate, tasks]);
 
   // --- Helper Functions ---
+
+  // ฟังก์ชันสำหรับกลับไปหน้าหลัก
+  const handleGoBack = () => {
+    router.back();
+  };
 
   // ฟังก์ชันสำหรับแปลงวันที่จาก UTC string เป็น YYYY-MM-DD ของ Local Timezone
   const getLocalDateString = (dateString: string): string => {
@@ -156,7 +163,14 @@ export default function CalendarScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ตารางงาน</Text>
         <Text style={styles.headerSubtitle}>{tasks.length} งานทั้งหมด</Text>
+        
+        {/* ปุ่มสำหรับกลับไปหน้าหลัก */}
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="home-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.backButtonText}>Home</Text>
+        </TouchableOpacity>
       </View>
+      
       <View style={styles.calendarWrapper}>
         <View style={styles.calendarContainer}>
           <Calendar
@@ -219,4 +233,3 @@ export default function CalendarScreen() {
     </SafeAreaView>
   );
 }
-

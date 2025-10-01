@@ -134,5 +134,27 @@ export const styles = StyleSheet.create({
     color: "#999",
     fontStyle: 'italic',
   },
+  // สไตล์สำหรับปุ่มกลับ
+backButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#ff4d6d',
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  borderRadius: 20,
+  marginTop: 12,
+  alignSelf: 'flex-start',
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.2,
+  shadowRadius: 2,
+  elevation: 3,
+},
+backButtonText: {
+  color: '#FFFFFF',
+  fontWeight: 'bold',
+  marginLeft: 8,
+  fontSize: 16,
+},
 });
 
