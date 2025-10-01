@@ -1,32 +1,189 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Modal, TouchableOpacity, SafeAreaView, StatusBar } from "react-native";
+// app/(tabs)/MainWork.tsx
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+} from "react-native";
 import { Calendar } from "react-native-calendars";
+import { useLocalSearchParams } from "expo-router";
+
+// ✅ นำเข้า styles จากไฟล์แยกเพื่อความเรียบร้อย
+import { styles } from "./MainWorkStyles";
+
+interface Task {
+  id: number;
+  user_id: number;
+  title: string;
+  description: string;
+  category: string;
+  duration: number;
+  duration_unit: string;
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+  color: string;
+  reminder: number;
+  priority: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function CalendarScreen() {
+  const params = useLocalSearchParams();
+  const { user_id } = params;
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<number>(0);
 
-  // 📌 งานตัวอย่าง
-  const events: Record<string, string[]> = {
-    "2025-10-01": ["Meeting ทีม", "ส่งรายงานวิชา Data Analytics"],
-    "2025-10-07": ["Deadline โปรเจค React"],
-    "2025-10-23": ["สอบกลางภาค"],
-    "2025-10-31": ["ปาร์ตี้ 🎃 Halloween"],
+  const API_URL = "http://192.168.1.9:3000";
+  const today = new Date().toISOString().split("T")[0];
+
+  // ✅✅✅ ส่วนของการ Debug อยู่ใน useEffect นี้ ✅✅✅
+  useEffect(() => {
+    console.log("\n--- 🕵️  เริ่ม Debug หน้า MainWork ---");
+    console.log("1. ค่า Params ที่ได้รับ:", params);
+
+    const fetchTasks = async (currentUserId: number) => {
+      console.log("4. กำลังจะ Fetch ข้อมูลสำหรับ user_id:", currentUserId);
+
+      if (!currentUserId || isNaN(currentUserId) || currentUserId === 0) {
+        console.log("❌ หยุดการ Fetch เพราะ user_id ไม่ถูกต้อง:", currentUserId);
+        Alert.alert("ผิดพลาด", `ไม่สามารถโหลดข้อมูลได้เนื่องจาก User ID ไม่ถูกต้อง (ID: ${currentUserId})`);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/tasks/${currentUserId}`);
+        
+        // ตรวจสอบว่า response ที่ได้จาก server เป็น JSON จริงๆ หรือไม่
+        const responseText = await response.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          console.error("❌ Server ไม่ได้ตอบกลับเป็น JSON:", responseText);
+          Alert.alert("ผิดพลาด", "Server ตอบกลับข้อมูลในรูปแบบที่ไม่ถูกต้อง");
+          return;
+        }
+
+        console.log("5. ข้อมูลที่ได้รับจาก Server:", data);
+
+        if (data.success) {
+          setTasks(data.tasks);
+          console.log(`✅ โหลดงานสำเร็จ ${data.tasks.length} รายการ`);
+        } else {
+          Alert.alert("ผิดพลาดจาก Server", data.message || "ไม่สามารถโหลดงานได้");
+        }
+      } catch (error) {
+        console.error("❌ เกิดข้อผิดพลาดระหว่างการ Fetch:", error);
+        Alert.alert(
+          "ผิดพลาดในการเชื่อมต่อ",
+          "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบ IP Address และการเชื่อมต่อ Wi-Fi"
+        );
+      } finally {
+        setLoading(false);
+        console.log("--- 🕵️  สิ้นสุด Debug ---");
+      }
+    };
+
+    if (user_id) {
+      const id = Number(user_id);
+      console.log(`2. แปลงค่า user_id จาก "${user_id}" (string) เป็น ${id} (number)`);
+      
+      setUserId(id);
+      console.log("3. ตั้งค่า State 'userId' สำเร็จ");
+      fetchTasks(id);
+    } else {
+      setLoading(false);
+      Alert.alert("ผิดพลาด", "ไม่พบข้อมูล User ID ที่ส่งมาจากหน้าก่อนหน้า");
+      console.log("❌ ไม่พบ 'user_id' ใน params");
+      console.log("--- 🕵️  สิ้นสุด Debug ---");
+    }
+  }, [user_id]);
+
+  const groupTasksByDate = (): Record<string, Task[]> => {
+    if (!tasks || tasks.length === 0) return {};
+    const grouped: Record<string, Task[]> = {};
+    tasks.forEach((task) => {
+      const date = task.start_date.split("T")[0]; // เอาเฉพาะส่วนวันที่
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(task);
+    });
+    return grouped;
   };
 
-  // 📌 วันนี้
-  const today = new Date().toISOString().split("T")[0];
+  const tasksByDate = groupTasksByDate();
+
+  const getMarkedDates = () => {
+    const marked: Record<string, any> = {};
+    Object.keys(tasksByDate).forEach((date) => {
+      marked[date] = { marked: true, dotColor: "#ff4d6d" };
+    });
+    marked[today] = { ...marked[today], selected: true, selectedColor: "#ff4d6d" };
+    if (selectedDate && selectedDate !== today) {
+      marked[selectedDate] = { ...marked[selectedDate], selected: true, selectedColor: "#ff99ac" };
+    }
+    return marked;
+  };
+
+  const getTasksForSelectedDate = (): Task[] => {
+    return selectedDate ? tasksByDate[selectedDate] || [] : [];
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high": return "#EF4444";
+      case "medium": return "#F59E0B";
+      case "low": return "#10B981";
+      default: return "#6B7280";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed": return "✅";
+      case "in_progress": return "🔄";
+      case "cancelled": return "❌";
+      default: return "⏳";
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffe6ec" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#ff4d6d" />
+          <Text style={styles.loadingText}>กำลังโหลดงาน...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffe6ec" />
-      
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>MainWork</Text>
+        <Text style={styles.headerSubtitle}>{tasks.length} งานทั้งหมด</Text>
       </View>
-
-      {/* Calendar - เต็มพื้นที่ที่เหลือ พร้อมพื้นหลังสีขาว */}
       <View style={styles.calendarWrapper}>
         <View style={styles.calendarContainer}>
           <Calendar
@@ -34,27 +191,7 @@ export default function CalendarScreen() {
               setSelectedDate(day.dateString);
               setModalVisible(true);
             }}
-            markedDates={{
-              ...Object.keys(events).reduce((acc, date) => {
-                acc[date] = {
-                  marked: true,
-                  dotColor: "#ff4d6d",
-                };
-                return acc;
-              }, {} as Record<string, any>),
-              [today]: { 
-                selected: true, 
-                selectedColor: "#ff4d6d",
-                selectedTextColor: "white"
-              },
-              ...(selectedDate && selectedDate !== today
-                ? { [selectedDate]: { 
-                    selected: true, 
-                    selectedColor: "#ff99ac",
-                    selectedTextColor: "white"
-                  }}
-                : {}),
-            }}
+            markedDates={getMarkedDates()}
             theme={{
               calendarBackground: "#ffffff",
               textSectionTitleColor: "#ff4d6d",
@@ -78,8 +215,6 @@ export default function CalendarScreen() {
           />
         </View>
       </View>
-
-      {/* Modal โชว์รายละเอียด */}
       <Modal
         visible={modalVisible}
         transparent
@@ -88,20 +223,51 @@ export default function CalendarScreen() {
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              📅 งานวันที่ {selectedDate}
-            </Text>
+            <Text style={styles.modalTitle}>📅 งานวันที่ {selectedDate}</Text>
             <View style={styles.divider} />
-            {events[selectedDate || ""] ? (
-              events[selectedDate || ""].map((task, index) => (
-                <View key={index} style={styles.eventItem}>
-                  <Text style={styles.eventText}>• {task}</Text>
-                </View>
-              ))
-            ) : (
-              <Text style={styles.noEventText}>✨ ไม่มีงานในวันนี้</Text>
-            )}
-
+            <ScrollView style={styles.tasksScrollView}>
+              {getTasksForSelectedDate().length > 0 ? (
+                getTasksForSelectedDate().map((task) => (
+                  <View key={task.id} style={styles.taskCard}>
+                    <View style={styles.taskHeader}>
+                      <Text style={styles.taskTitle}>
+                        {getStatusIcon(task.status)} {task.title}
+                      </Text>
+                      <View
+                        style={[
+                          styles.priorityBadge,
+                          { backgroundColor: getPriorityColor(task.priority) },
+                        ]}
+                      >
+                        <Text style={styles.priorityText}>
+                          {task.priority === "high"
+                            ? "สูง"
+                            : task.priority === "medium"
+                            ? "กลาง"
+                            : "ต่ำ"}
+                        </Text>
+                      </View>
+                    </View>
+                    {task.description ? (
+                      <Text style={styles.taskDescription}>{task.description}</Text>
+                    ) : null}
+                    <View style={styles.taskDetails}>
+                      <Text style={styles.taskDetailText}>
+                        ⏰ {task.start_time} - {task.end_time}
+                      </Text>
+                      {task.category && (
+                        <Text style={styles.taskDetailText}>📁 {task.category}</Text>
+                      )}
+                      <Text style={styles.taskDetailText}>
+                        ⏱️ {task.duration} {task.duration_unit}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noEventText}>✨ ไม่มีงานในวันนี้</Text>
+              )}
+            </ScrollView>
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.closeButton}
@@ -114,98 +280,3 @@ export default function CalendarScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#ffe6ec",
-  },
-  header: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "#ffe6ec",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ffccd9",
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#ff4d6d",
-  },
-  calendarWrapper: {
-    flex: 1,
-    padding: 16,
-  },
-  calendarContainer: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  calendar: {
-    borderRadius: 12,
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalBox: {
-    width: "85%",
-    backgroundColor: "#ffffff",
-    padding: 24,
-    borderRadius: 20,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#ff4d6d",
-    marginBottom: 12,
-    textAlign: "center",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#ffccd9",
-    marginBottom: 16,
-  },
-  eventItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  eventText: {
-    fontSize: 16,
-    color: "#444",
-    lineHeight: 24,
-  },
-  noEventText: {
-    fontSize: 16,
-    color: "#999",
-    textAlign: "center",
-    fontStyle: "italic",
-    paddingVertical: 12,
-  },
-  closeButton: {
-    marginTop: 20,
-    backgroundColor: "#ff4d6d",
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    elevation: 2,
-  },
-  closeButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-});

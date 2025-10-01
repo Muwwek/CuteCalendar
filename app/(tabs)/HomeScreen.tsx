@@ -8,22 +8,26 @@ import { styles } from "./HomeScreenStyles";
 export default function HomeScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  
+  // ✅ ดึงค่าออกมาจาก params ก่อน
+  const { email, username: paramsUsername, user_id } = params;
 
   const [userEmail, setUserEmail] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [userId, setUserId] = useState<number>(0);
 
+  // ✅ แก้ไข useEffect
   useEffect(() => {
     console.log("HomeScreen params:", params);
 
-    if (params?.email && params?.username && params?.user_id) {
-      setUserEmail(params.email as string);
-      setUsername(params.username as string);
-      setUserId(Number(params.user_id));
+    if (email && paramsUsername && user_id) {
+      setUserEmail(email as string);
+      setUsername(paramsUsername as string);
+      setUserId(Number(user_id));
       console.log("✅ User data loaded:", {
-        username: params.username,
-        email: params.email,
-        user_id: params.user_id,
+        username: paramsUsername,
+        email: email,
+        user_id: user_id,
       });
     } else {
       // fallback ถ้าเข้ามาโดยไม่ login
@@ -32,13 +36,12 @@ export default function HomeScreen() {
       setUserId(0);
       console.log("⚠️ Using guest mode");
     }
-  }, [params]);
+  }, [email, paramsUsername, user_id]); // ✅ เปลี่ยน dependency array เป็นค่า primitive
 
   const handleLogout = () => {
     router.replace("/login");
   };
 
-  // ปุ่ม "ตั้งค่างานหลัก" (ยังทำหน้าที่เดียวกับ goToSettings — แต่เก็บ semantic)
   const handleSetupWork = () => {
     if (userId === 0) {
       Alert.alert("ผิดพลาด", "กรุณาล็อกอินก่อนใช้งาน");
@@ -55,7 +58,6 @@ export default function HomeScreen() {
     });
   };
 
-  // ปุ่ม shortcut ไปหน้า Settings
   const handleGoToSettings = () => {
     if (userId === 0) {
       Alert.alert("ผิดพลาด", "กรุณาล็อกอินก่อนใช้งาน");
@@ -74,6 +76,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* ... ส่วน UI เหมือนเดิม ... */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <Ionicons name="person-circle" size={50} color="#007AFF" />

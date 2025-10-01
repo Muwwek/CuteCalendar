@@ -16,6 +16,9 @@ import { styles } from "./LoginStyles";
 export default function LoginScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  
+  // ✅ ดึงค่าออกมาจาก params ก่อน
+  const { message, registeredEmail } = params;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,16 +26,20 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [passwordStatus, setPasswordStatus] = useState<"correct" | "wrong" | "">("");
 
+  // ✅ แก้ไข useEffect
   useEffect(() => {
-    if (params.message) {
-      Alert.alert("Success", params.message.toString());
-      if (params.registeredEmail) setEmail(params.registeredEmail.toString());
+    if (message) {
+      Alert.alert("Success", message.toString());
+      if (registeredEmail) {
+        setEmail(registeredEmail.toString());
+      }
     }
-  }, [params]);
+  }, [message, registeredEmail]); // ✅ เปลี่ยน dependency array เป็นค่า primitive
 
   const API_URL = "http://192.168.1.9:3000";
 
   const handleLogin = async () => {
+    // ... โค้ดส่วน handleLogin เหมือนเดิม ...
     if (!email || !password) {
       Alert.alert("Error", "Please enter Email and Password");
       return;
@@ -58,21 +65,18 @@ export default function LoginScreen() {
 
       if (data.success) {
         setPasswordStatus("correct");
-
-        // reset input
         setEmail("");
         setPassword("");
 
         console.log("✅ Login successful, user_id:", data.user_id);
 
-        // ส่ง params ไปยัง HomeScreen รวมถึง user_id
         setTimeout(() => {
           router.push({
             pathname: "/HomeScreen",
             params: {
               email: data.email,
               username: data.username,
-              user_id: data.user_id.toString(), // ✅ ส่ง user_id ไปด้วย
+              user_id: data.user_id.toString(),
             },
           });
         }, 1000);
@@ -98,6 +102,7 @@ export default function LoginScreen() {
     <>
       <StatusBar barStyle="light-content" backgroundColor="#667eea" />
       <View style={styles.container}>
+        {/* ... ส่วน UI เหมือนเดิม ... */}
         <View style={styles.decorativeCircle1} />
         <View style={styles.decorativeCircle2} />
         
