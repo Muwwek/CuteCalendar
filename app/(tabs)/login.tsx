@@ -30,7 +30,7 @@ export default function LoginScreen() {
     }
   }, [params]);
 
-  const API_URL = "http://localhost:3000";
+  const API_URL = "http://192.168.1.9:3000";
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -63,13 +63,16 @@ export default function LoginScreen() {
         setEmail("");
         setPassword("");
 
-        // send username + email to HomeScreen
+        console.log("✅ Login successful, user_id:", data.user_id);
+
+        // ส่ง params ไปยัง HomeScreen รวมถึง user_id
         setTimeout(() => {
-          router.navigate({
-            pathname: "/(tabs)/HomeScreen",
+          router.push({
+            pathname: "/HomeScreen",
             params: {
               email: data.email,
               username: data.username,
+              user_id: data.user_id.toString(), // ✅ ส่ง user_id ไปด้วย
             },
           });
         }, 1000);
@@ -88,7 +91,7 @@ export default function LoginScreen() {
 
   const handleRegister = () => {
     setPasswordStatus("");
-    router.push("/(tabs)/RegisterPage");
+    router.push("/RegisterPage");
   };
 
   return (

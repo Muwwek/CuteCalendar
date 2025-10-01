@@ -22,13 +22,13 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="login"
         options={{
-          href: null, // 👈 บอก router ว่าไม่ต้องโชว์ใน Tab bar
+          href: null, // ซ่อนจาก Tab bar
         }}
       />
       <Tabs.Screen
         name="RegisterPage"
         options={{
-          href: null, // 👈 บอก router ว่าไม่ต้องโชว์ใน Tab bar
+          href: null, // ซ่อนจาก Tab bar
         }}
       />
       <Tabs.Screen
@@ -43,10 +43,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "ตั้งค่า",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
-          ),
+          href: null, // ซ่อนจาก Tab bar — เข้าได้เฉพาะ push จากหน้าอื่น
         }}
       />
     </Tabs>

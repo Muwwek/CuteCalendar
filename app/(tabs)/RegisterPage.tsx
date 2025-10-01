@@ -1,5 +1,5 @@
 // app/(tabs)/RegisterPage.tsx
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"error" | "success" | "">("");
 
-  const API_URL = "http://localhost:3000";
+  const API_URL = "http://192.168.1.9:3000";
 
   const resetForm = (all: boolean = true) => {
     if (all) {
@@ -61,6 +61,12 @@ export default function RegisterPage() {
       return;
     }
 
+    if (username.length < 3) {
+      setStatusMessage("Username should be at least 3 characters 😊");
+      setStatusType("error");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -82,6 +88,8 @@ export default function RegisterPage() {
         message: "Invalid response from server"
       }));
 
+      console.log("Registration response:", data);
+
       if (response.ok && data.success) {
         setStatusMessage("🎉 Hooray! Registration successful!");
         setStatusType("success");
@@ -89,10 +97,17 @@ export default function RegisterPage() {
         // รีเซ็ตข้อมูลทั้งหมดทันที
         resetForm(true);
 
-        // Navigate ไปหน้า login หลัง 1 วินาทีเพื่อให้ user เห็นข้อความ
+        // Navigate ไปหน้า login หลัง 1.5 วินาทีเพื่อให้ user เห็นข้อความ
         setTimeout(() => {
-          router.navigate("/(tabs)/login");
-        }, 1000);
+          router.push({
+            pathname: "/login",
+            params: { 
+              message: "Registration successful! Please login.",
+              registeredEmail: email,
+              registeredUserID: data.user_id.toString() // ✅ ส่ง user_id ไปด้วย
+            }
+          });
+        }, 1500);
 
       } else {
         // กรณีผิดพลาด รีเซ็ตเฉพาะ password เพื่อให้แก้ไขง่าย
@@ -101,6 +116,7 @@ export default function RegisterPage() {
         setStatusType("error");
       }
     } catch (error: any) {
+      console.error("Registration error:", error);
       resetForm(false);
       setStatusMessage("Network error 😢 Please check your connection");
       setStatusType("error");
@@ -111,92 +127,182 @@ export default function RegisterPage() {
 
   const handleBackToLogin = () => {
     resetForm();
-    router.navigate("/(tabs)/login");
+    router.push("/login");
   };
 
   return (
     <View style={styles.container}>
+      {/* Header with Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={handleBackToLogin} disabled={loading}>
         <Ionicons name="arrow-back-outline" size={24} color="#007AFF" />
-        <Text style={styles.backButtonText}>Back</Text>
+        <Text style={styles.backButtonText}>Back to Login</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Register</Text>
-
-      <TextInput
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-        autoCapitalize="none"
-        editable={!loading}
-        placeholderTextColor="#999"
-      />
-
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        editable={!loading}
-        placeholderTextColor="#999"
-      />
-
-      <View style={styles.passwordContainer}>
-        <TextInput
-          placeholder="Password"
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
-          style={styles.passwordInput}
-          editable={!loading}
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton} disabled={loading}>
-          <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={24} color="#7f8c8d" />
-        </TouchableOpacity>
+      {/* Main Title */}
+      <View style={styles.header}>
+        <Ionicons name="person-add" size={32} color="#007AFF" />
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>Join SmartPriorityLife today!</Text>
       </View>
 
-      <View style={styles.passwordContainer}>
-        <TextInput
-          placeholder="Confirm Password"
-          secureTextEntry={!showConfirmPassword}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          style={styles.passwordInput}
-          editable={!loading}
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeButton} disabled={loading}>
-          <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={24} color="#7f8c8d" />
-        </TouchableOpacity>
-      </View>
+      {/* Registration Form */}
+      <View style={styles.formCard}>
+        {/* Username Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
+            <Ionicons name="person-outline" size={16} color="#374151" /> Username
+          </Text>
+          <TextInput
+            placeholder="Enter your username"
+            value={username}
+            onChangeText={setUsername}
+            style={styles.input}
+            autoCapitalize="none"
+            autoComplete="username"
+            editable={!loading}
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
 
-      {/* Status message */}
-      {statusMessage !== "" && (
-        <Text style={[styles.statusText, statusType === "error" ? styles.errorText : styles.successText]}>
-          {statusMessage}
-        </Text>
-      )}
+        {/* Email Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
+            <Ionicons name="mail-outline" size={16} color="#374151" /> Email
+          </Text>
+          <TextInput
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            style={styles.input}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            editable={!loading}
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
 
-      <TouchableOpacity 
-        style={[styles.registerButton, loading && styles.registerButtonDisabled]}
-        onPress={handleRegister}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color="#FFFFFF" />
-        ) : (
-          <Text style={styles.registerButtonText}>Register</Text>
+        {/* Password Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
+            <Ionicons name="lock-closed-outline" size={16} color="#374151" /> Password
+          </Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              placeholder="Create a password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              style={styles.passwordInput}
+              autoCapitalize="none"
+              autoComplete="new-password"
+              editable={!loading}
+              placeholderTextColor="#9ca3af"
+            />
+            <TouchableOpacity 
+              onPress={() => setShowPassword(!showPassword)} 
+              style={styles.eyeButton} 
+              disabled={loading}
+            >
+              <Ionicons 
+                name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                size={24} 
+                color="#7f8c8d" 
+              />
+            </TouchableOpacity>
+          </View>
+          {password.length > 0 && password.length < 4 && (
+            <Text style={styles.passwordHint}>Password should be at least 4 characters</Text>
+          )}
+        </View>
+
+        {/* Confirm Password Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>
+            <Ionicons name="lock-closed-outline" size={16} color="#374151" /> Confirm Password
+          </Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              placeholder="Confirm your password"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              style={styles.passwordInput}
+              autoCapitalize="none"
+              autoComplete="new-password"
+              editable={!loading}
+              placeholderTextColor="#9ca3af"
+            />
+            <TouchableOpacity 
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)} 
+              style={styles.eyeButton} 
+              disabled={loading}
+            >
+              <Ionicons 
+                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                size={24} 
+                color="#7f8c8d" 
+              />
+            </TouchableOpacity>
+          </View>
+          {confirmPassword.length > 0 && password !== confirmPassword && (
+            <Text style={styles.passwordError}>Passwords don't match</Text>
+          )}
+        </View>
+
+        {/* Status Message */}
+        {statusMessage !== "" && (
+          <View style={[
+            styles.statusContainer, 
+            statusType === "error" ? styles.errorContainer : styles.successContainer
+          ]}>
+            <Ionicons 
+              name={statusType === "error" ? "alert-circle" : "checkmark-circle"} 
+              size={20} 
+              color={statusType === "error" ? "#ef4444" : "#10b981"} 
+            />
+            <Text style={[
+              styles.statusText, 
+              statusType === "error" ? styles.errorText : styles.successText
+            ]}>
+              {statusMessage}
+            </Text>
+          </View>
         )}
-      </TouchableOpacity>
 
+        {/* Register Button */}
+        <TouchableOpacity 
+          style={[
+            styles.registerButton, 
+            (loading || !username || !email || !password || !confirmPassword || password !== confirmPassword) && 
+            styles.registerButtonDisabled
+          ]}
+          onPress={handleRegister}
+          disabled={loading || !username || !email || !password || !confirmPassword || password !== confirmPassword}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <Ionicons name="person-add" size={20} color="#FFFFFF" />
+              <Text style={styles.registerButtonText}>Create Account</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Terms Notice */}
+        <Text style={styles.termsText}>
+          By creating an account, you agree to our Terms of Service and Privacy Policy
+        </Text>
+      </View>
+
+      {/* Login Link */}
       <View style={styles.loginLinkContainer}>
         <Text style={styles.loginText}>Already have an account? </Text>
         <TouchableOpacity onPress={handleBackToLogin} disabled={loading}>
-          <Text style={[styles.loginLink, loading && styles.loginLinkDisabled]}>Login</Text>
+          <Text style={[styles.loginLink, loading && styles.loginLinkDisabled]}>
+            Sign In
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
