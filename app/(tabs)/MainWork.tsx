@@ -1,5 +1,5 @@
 // app/(tabs)/MainWork.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,9 +12,10 @@ import {
   Modal,
   TextInput,
   Switch,
+  RefreshControl,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { styles } from "./MainWorkStyles";
@@ -78,6 +79,7 @@ export default function CalendarScreen() {
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(today);
   const [tasksForSelectedDay, setTasksForSelectedDay] = useState<Task[]>([]);
 
@@ -104,7 +106,6 @@ export default function CalendarScreen() {
 
   // --- Logic การดึงข้อมูล ---
   const fetchTasks = async (currentUserId: number) => {
-    setLoading(true);
     try {
       const response = await fetch(`${API_URL}/tasks/${currentUserId}`);
       const data = await response.json();
@@ -119,8 +120,18 @@ export default function CalendarScreen() {
       Alert.alert("ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  // 🔄 โหลดข้อมูลใหม่เมื่อโฟกัสหน้านี้
+  useFocusEffect(
+    useCallback(() => {
+      if (user_id) {
+        fetchTasks(Number(user_id));
+      }
+    }, [user_id])
+  );
 
   useEffect(() => {
     if (user_id) {
@@ -137,10 +148,20 @@ export default function CalendarScreen() {
     setTasksForSelectedDay(filteredTasks);
   }, [selectedDate, tasks]);
 
+  // 🔄 ฟังก์ชันดึงข้อมูลใหม่ (Pull-to-Refresh)
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    if (user_id) {
+      fetchTasks(Number(user_id));
+    } else {
+      setRefreshing(false);
+    }
+  }, [user_id]);
+
   // --- Helper Functions ---
   const handleGoBack = () => router.back();
 
-  // ====== แก้ตรงนี้: handleAddTask ส่งเฉพาะ field ที่ backend รองรับ ======
+  // ====== handleAddTask ที่อัพเดทข้อมูลอัตโนมัติ ======
   const handleAddTask = async () => {
     if (!newTaskTitle.trim()) {
       Alert.alert("ข้อมูลไม่ครบ", "กรุณากรอกชื่องาน");
@@ -175,6 +196,7 @@ export default function CalendarScreen() {
       if (response.ok && data.success) {
         Alert.alert("สำเร็จ", "เพิ่มงานใหม่เรียบร้อยแล้ว");
         closeAndResetModal();
+        // 🔄 โหลดข้อมูลใหม่หลังจากเพิ่มสำเร็จ
         if (user_id) fetchTasks(Number(user_id));
       } else {
         console.error('Add task failed:', response.status, data);
@@ -184,6 +206,40 @@ export default function CalendarScreen() {
       console.error('Add task exception:', error);
       Alert.alert("ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
     }
+  };
+
+  // ====== ฟังก์ชันลบงานที่อัพเดทข้อมูลอัตโนมัติ ======
+  const handleDeleteTask = async (taskId: number) => {
+    Alert.alert(
+      "ยืนยันการลบ",
+      "คุณต้องการลบงานนี้ใช่หรือไม่?",
+      [
+        { text: "ยกเลิก", style: "cancel" },
+        {
+          text: "ลบ",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+                method: 'DELETE',
+              });
+              const data = await response.json();
+
+              if (response.ok && data.success) {
+                Alert.alert("สำเร็จ", "ลบงานเรียบร้อยแล้ว");
+                // 🔄 โหลดข้อมูลใหม่หลังจากลบสำเร็จ
+                if (user_id) fetchTasks(Number(user_id));
+              } else {
+                Alert.alert("ผิดพลาด", data.message || "ไม่สามารถลบงานได้");
+              }
+            } catch (error) {
+              console.error('Delete task exception:', error);
+              Alert.alert("ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const openAddTaskModal = () => {
@@ -298,7 +354,16 @@ export default function CalendarScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#ff4d6d"]}
+            tintColor="#ff4d6d"
+          />
+        }
+      >
         <View style={styles.calendarWrapper}>
           <View style={styles.calendarContainer}>
             <Calendar
@@ -323,56 +388,74 @@ export default function CalendarScreen() {
         </View>
 
         <View style={styles.dailyTasksContainer}>
-          <Text style={styles.dailyTasksTitle}>
-            รายการงานวันที่: {formatDateForDisplay(selectedDate)}
-          </Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.dailyTasksTitle}>
+              รายการงานวันที่: {formatDateForDisplay(selectedDate)}
+            </Text>
+            <TouchableOpacity 
+              style={styles.refreshButton}
+              onPress={onRefresh}
+            >
+              <Ionicons name="refresh" size={20} color="#ff4d6d" />
+            </TouchableOpacity>
+          </View>
 
-          {tasksForSelectedDay.length > 0 ? (
-            tasksForSelectedDay.map((task) => {
-              const priorityStyle = getPriorityStyle(task.priority);
-              const statusStyle = getStatusStyle(task.status);
-              return (
-                <View key={task.id} style={styles.taskCard}>
-                  <View style={styles.taskCardHeader}>
-                    <Text style={styles.taskCardTitle}>{task.title}</Text>
-                    <View style={[styles.priorityBadge, { backgroundColor: priorityStyle.color }]}>
-                      <Text style={styles.priorityText}>{priorityStyle.text}</Text>
-                    </View>
-                  </View>
+{tasksForSelectedDay.length > 0 ? (
+  tasksForSelectedDay.map((task) => {
+    const priorityStyle = getPriorityStyle(task.priority);
+    const statusStyle = getStatusStyle(task.status);
+    return (
+      <View key={task.id} style={styles.taskCard}>
+        <View style={styles.taskCardHeader}>
+          <Text style={styles.taskCardTitle}>{task.title}</Text>
+          <View style={styles.taskCardActions}>
+            <View style={[styles.priorityBadge, { backgroundColor: priorityStyle.color }]}>
+              <Text style={styles.priorityText}>{priorityStyle.text}</Text>
+            </View>
+            {/* ปุ่มลบถูกลบออก */}
+          </View>
+        </View>
 
-                  <View style={styles.taskCardBody}>
-                    <View style={styles.taskCardRow}>
-                      <Ionicons name="time-outline" size={16} color="#718096" />
-                      <Text style={styles.taskCardText}>{task.start_time} - {task.end_time}</Text>
-                    </View>
-                    {task.description && (
-                      <View style={styles.taskCardRow}>
-                        <Ionicons name="reader-outline" size={16} color="#718096" />
-                        <Text style={styles.taskCardText}>{task.description}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.taskCardFooter}>
-                    {task.category && (
-                      <View style={styles.tag}>
-                        <Ionicons name="folder-outline" size={14} color="#4A5568" />
-                        <Text style={styles.tagText}>{task.category}</Text>
-                      </View>
-                    )}
-                    <View style={styles.tag}>
-                      <Ionicons name={statusStyle.icon as any} size={14} color={statusStyle.color} />
-                      <Text style={[styles.tagText, {color: statusStyle.color}]}>{statusStyle.text}</Text>
-                    </View>
-                  </View>
-                </View>
-              );
-            })
-          ) : (
-            <View style={styles.noTasksCard}>
-              <Text style={styles.noTasksText}>🎉 ไม่มีงานสำหรับวันที่เลือก</Text>
+        <View style={styles.taskCardBody}>
+          <View style={styles.taskCardRow}>
+            <Ionicons name="time-outline" size={16} color="#718096" />
+            <Text style={styles.taskCardText}>{task.start_time} - {task.end_time}</Text>
+          </View>
+          {task.description && (
+            <View style={styles.taskCardRow}>
+              <Ionicons name="reader-outline" size={16} color="#718096" />
+              <Text style={styles.taskCardText}>{task.description}</Text>
             </View>
           )}
+        </View>
+
+        <View style={styles.taskCardFooter}>
+          {task.category && (
+            <View style={styles.tag}>
+              <Ionicons name="folder-outline" size={14} color="#4A5568" />
+              <Text style={styles.tagText}>{task.category}</Text>
+            </View>
+          )}
+          <View style={styles.tag}>
+            <Ionicons name={statusStyle.icon as any} size={14} color={statusStyle.color} />
+            <Text style={[styles.tagText, {color: statusStyle.color}]}>{statusStyle.text}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  })
+) : (
+  <View style={styles.noTasksCard}>
+    <Text style={styles.noTasksText}>🎉 ไม่มีงานสำหรับวันที่เลือก</Text>
+    <TouchableOpacity 
+      style={styles.addFirstTaskButton}
+      onPress={openAddTaskModal}
+    >
+      <Text style={styles.addFirstTaskText}>เพิ่มงานแรกของคุณ</Text>
+    </TouchableOpacity>
+  </View>
+)}
+
         </View>
       </ScrollView>
 
@@ -414,7 +497,6 @@ export default function CalendarScreen() {
                     <Picker.Item label="เรียน" value="เรียน" />
                   </Picker>
                 </View>
-
 
               <View style={styles.switchContainer}>
                 <Text style={styles.allDayText}>ทั้งวัน (All-day)</Text>
@@ -476,7 +558,6 @@ export default function CalendarScreen() {
           </View>
         </View>
       </Modal>
-
     </SafeAreaView>
   );
 }

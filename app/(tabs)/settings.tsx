@@ -1,5 +1,5 @@
 // app/(tabs)/setting.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,9 +12,10 @@ import {
   Modal,
   TextInput,
   Switch,
+  RefreshControl,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { styles } from "./MainWorkStyles"; // ใช้ styles เดียวกัน
@@ -90,6 +91,7 @@ export default function SettingScreen() {
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -109,11 +111,14 @@ export default function SettingScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [activeDatePicker, setActiveDatePicker] = useState<'start' | 'end' | null>(null);
 
+  // State สำหรับ Delete Confirmation Modal
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+
   const API_URL = "http://192.168.1.9:3000";
 
-  // ดึงข้อมูล tasks ทั้งหมดของ user
+  // 🔄 ดึงข้อมูล tasks ทั้งหมดของ user
   const fetchTasks = async (currentUserId: number) => {
-    setLoading(true);
     try {
       const response = await fetch(`${API_URL}/tasks/${currentUserId}`);
       const data = await response.json();
@@ -127,14 +132,34 @@ export default function SettingScreen() {
       Alert.alert("ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  // 🔄 โหลดข้อมูลใหม่เมื่อโฟกัสหน้านี้
+  useFocusEffect(
+    useCallback(() => {
+      if (user_id) {
+        fetchTasks(Number(user_id));
+      }
+    }, [user_id])
+  );
 
   useEffect(() => {
     if (user_id) {
       fetchTasks(Number(user_id));
     } else {
       setLoading(false);
+    }
+  }, [user_id]);
+
+  // 🔄 ฟังก์ชันดึงข้อมูลใหม่ (Pull-to-Refresh)
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    if (user_id) {
+      fetchTasks(Number(user_id));
+    } else {
+      setRefreshing(false);
     }
   }, [user_id]);
 
@@ -166,6 +191,50 @@ export default function SettingScreen() {
     setSelectedTask(null);
     setShowDatePicker(false);
     setActiveDatePicker(null);
+  };
+
+  // เปิด Modal ยืนยันการลบ
+  const openDeleteModal = (task: Task) => {
+    setTaskToDelete(task);
+    setDeleteModalVisible(true);
+  };
+
+  // ปิด Modal ยืนยันการลบ
+  const closeDeleteModal = () => {
+    setDeleteModalVisible(false);
+    setTaskToDelete(null);
+  };
+
+  // ยืนยันการลบงาน
+  const confirmDeleteTask = async () => {
+    if (!taskToDelete) return;
+
+    try {
+      const response = await fetch(`${API_URL}/tasks/${taskToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      const text = await response.text();
+      let data: any = {};
+      try { 
+        data = text ? JSON.parse(text) : {}; 
+      } catch (e) { 
+        data = { success: false, message: text }; 
+      }
+
+      if (response.ok && data.success) {
+        Alert.alert("สำเร็จ", "ลบงานเรียบร้อยแล้ว");
+        // 🔄 โหลดข้อมูลใหม่หลังจากลบสำเร็จ
+        if (user_id) fetchTasks(Number(user_id));
+      } else {
+        Alert.alert("ผิดพลาด", data.message || "ไม่สามารถลบงานได้");
+      }
+    } catch (error) {
+      console.error('Delete task exception:', error);
+      Alert.alert("ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+    } finally {
+      closeDeleteModal();
+    }
   };
 
   // บันทึกการแก้ไข
@@ -207,6 +276,7 @@ export default function SettingScreen() {
       if (response.ok && data.success) {
         Alert.alert("สำเร็จ", "อัพเดทงานเรียบร้อยแล้ว");
         closeEditModal();
+        // 🔄 โหลดข้อมูลใหม่หลังจากแก้ไขสำเร็จ
         if (user_id) fetchTasks(Number(user_id));
       } else {
         Alert.alert("ผิดพลาด", data.message || "ไม่สามารถอัพเดทงานได้");
@@ -215,39 +285,6 @@ export default function SettingScreen() {
       console.error('Update task exception:', error);
       Alert.alert("ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
     }
-  };
-
-  // ลบงาน
-  const handleDeleteTask = async (taskId: number) => {
-    Alert.alert(
-      "ยืนยันการลบ",
-      "คุณต้องการลบงานนี้ใช่หรือไม่?",
-      [
-        { text: "ยกเลิก", style: "cancel" },
-        {
-          text: "ลบ",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const response = await fetch(`${API_URL}/tasks/${taskId}`, {
-                method: 'DELETE',
-              });
-              const data = await response.json();
-
-              if (response.ok && data.success) {
-                Alert.alert("สำเร็จ", "ลบงานเรียบร้อยแล้ว");
-                if (user_id) fetchTasks(Number(user_id));
-              } else {
-                Alert.alert("ผิดพลาด", data.message || "ไม่สามารถลบงานได้");
-              }
-            } catch (error) {
-              console.error('Delete task exception:', error);
-              Alert.alert("ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
-            }
-          },
-        },
-      ]
-    );
   };
 
   // Helper Functions
@@ -320,7 +357,20 @@ export default function SettingScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#ffe6ec" />
       
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>จัดการงานทั้งหมด</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>จัดการงานทั้งหมด</Text>
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={onRefresh}
+            disabled={refreshing}
+          >
+            <Ionicons 
+              name="refresh" 
+              size={24} 
+              color={refreshing ? "#ccc" : "#ff4d6d"} 
+            />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.headerSubtitle}>{tasks.length} งานทั้งหมด</Text>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
@@ -328,7 +378,17 @@ export default function SettingScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={{ flex: 1 }}>
+      <ScrollView 
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#ff4d6d"]}
+            tintColor="#ff4d6d"
+          />
+        }
+      >
         <View style={styles.dailyTasksContainer}>
           {tasks.length > 0 ? (
             tasks.map((task) => {
@@ -392,7 +452,7 @@ export default function SettingScreen() {
                         <Ionicons name="pencil" size={18} color="white" />
                       </TouchableOpacity>
                       <TouchableOpacity
-                        onPress={() => handleDeleteTask(task.id)}
+                        onPress={() => openDeleteModal(task)}
                         style={{
                           backgroundColor: '#f56565',
                           padding: 8,
@@ -409,6 +469,12 @@ export default function SettingScreen() {
           ) : (
             <View style={styles.noTasksCard}>
               <Text style={styles.noTasksText}>📋 ยังไม่มีงานในระบบ</Text>
+              <TouchableOpacity 
+                style={styles.refreshTextButton}
+                onPress={onRefresh}
+              >
+                <Text style={styles.refreshTextButtonText}>แตะเพื่อรีเฟรช</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -663,6 +729,48 @@ export default function SettingScreen() {
                 </TouchableOpacity>
               </View>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal ยืนยันการลบงาน */}
+      <Modal
+        visible={isDeleteModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeDeleteModal}
+      >
+        <View style={styles.deleteModalContainer}>
+          <View style={styles.deleteModalContent}>
+            <View style={styles.deleteModalHeader}>
+              <Ionicons name="warning" size={40} color="#f56565" />
+              <Text style={styles.deleteModalTitle}>ยืนยันการลบงาน</Text>
+            </View>
+            
+            <View style={styles.deleteModalBody}>
+              <Text style={styles.deleteModalText}>
+                คุณต้องการลบงาน "{taskToDelete?.title}" ใช่หรือไม่?
+              </Text>
+              <Text style={styles.deleteModalSubText}>
+                การกระทำนี้ไม่สามารถย้อนกลับได้
+              </Text>
+            </View>
+
+            <View style={styles.deleteModalActions}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={closeDeleteModal}
+              >
+                <Text style={styles.cancelButtonText}>ยกเลิก</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.confirmDeleteButton}
+                onPress={confirmDeleteTask}
+              >
+                <Text style={styles.confirmDeleteButtonText}>ลบงาน</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>

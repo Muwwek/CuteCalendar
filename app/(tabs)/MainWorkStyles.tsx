@@ -365,4 +365,136 @@ picker: {
   height: 50,
   width: "100%",
 },
+deleteModalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  padding: 20,
+},
+deleteModalContent: {
+  backgroundColor: 'white',
+  borderRadius: 16,
+  padding: 24,
+  width: '100%',
+  maxWidth: 320,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
+deleteModalHeader: {
+  alignItems: 'center',
+  marginBottom: 20,
+},
+deleteModalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#2d3748',
+  marginTop: 12,
+  textAlign: 'center',
+},
+deleteModalBody: {
+  marginBottom: 24,
+},
+deleteModalText: {
+  fontSize: 16,
+  color: '#4a5568',
+  textAlign: 'center',
+  marginBottom: 8,
+},
+deleteModalSubText: {
+  fontSize: 14,
+  color: '#718096',
+  textAlign: 'center',
+},
+deleteModalActions: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  gap: 12,
+},
+cancelButton: {
+  flex: 1,
+  backgroundColor: '#e2e8f0',
+  paddingVertical: 12,
+  borderRadius: 8,
+  alignItems: 'center',
+},
+cancelButtonText: {
+  color: '#4a5568',
+  fontSize: 16,
+  fontWeight: '600',
+},
+confirmDeleteButton: {
+  flex: 1,
+  backgroundColor: '#f56565',
+  paddingVertical: 12,
+  borderRadius: 8,
+  alignItems: 'center',
+},
+confirmDeleteButtonText: {
+  color: 'white',
+  fontSize: 16,
+  fontWeight: '600',
+},
+sectionHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 16,
+},
+refreshButton: {
+  padding: 8,
+  borderRadius: 8,
+  backgroundColor: '#f7fafc',
+},
+taskCardActions: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+},
+deleteButton: {
+  padding: 6,
+  borderRadius: 6,
+  backgroundColor: '#fed7d7',
+},
+addFirstTaskButton: {
+  marginTop: 12,
+  paddingVertical: 12,
+  paddingHorizontal: 24,
+  backgroundColor: '#ff4d6d',
+  borderRadius: 8,
+  alignItems: 'center',
+},
+addFirstTaskText: {
+  color: 'white',
+  fontSize: 16,
+  fontWeight: '600',
+},
+headerTop: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
+},
+
+// ปุ่มรีเฟรชแบบข้อความ
+refreshTextButton: {
+  marginTop: 12,
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  backgroundColor: '#ff4d6d',
+  borderRadius: 8,
+  alignItems: 'center',
+},
+
+refreshTextButtonText: {
+  color: 'white',
+  fontSize: 16,
+  fontWeight: '600',
+},
 });
