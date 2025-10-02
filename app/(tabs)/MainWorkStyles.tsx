@@ -365,5 +365,4 @@ picker: {
   height: 50,
   width: "100%",
 },
-
 });
