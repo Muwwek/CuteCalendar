@@ -12,11 +12,11 @@ import {
   Modal,
   TextInput,
   Switch,
-  StyleSheet,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import { styles } from "./MainWorkStyles";
 
 // Interface สำหรับ Task
@@ -403,7 +403,18 @@ export default function CalendarScreen() {
               <TextInput style={[styles.input, {height: 80}]} placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับงานนี้" value={newTaskDescription} onChangeText={setNewTaskDescription} multiline />
 
               <Text style={styles.formLabel}>หมวดหมู่</Text>
-              <TextInput style={styles.input} placeholder="เช่น งาน, ส่วนตัว, เรียน" value={newTaskCategory} onChangeText={setNewTaskCategory} />
+                <View style={styles.pickerWrapper}>
+                  <Picker
+                    selectedValue={newTaskCategory}
+                    onValueChange={(itemValue) => setNewTaskCategory(itemValue)}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="งาน" value="งาน" />
+                    <Picker.Item label="ส่วนตัว" value="ส่วนตัว" />
+                    <Picker.Item label="เรียน" value="เรียน" />
+                  </Picker>
+                </View>
+
 
               <View style={styles.switchContainer}>
                 <Text style={styles.allDayText}>ทั้งวัน (All-day)</Text>

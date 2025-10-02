@@ -354,4 +354,16 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  pickerWrapper: {
+  borderWidth: 1,
+  borderColor: "#e2e8f0",
+  borderRadius: 8,
+  marginBottom: 15,
+  backgroundColor: "#fff",
+},
+picker: {
+  height: 50,
+  width: "100%",
+},
+
 });

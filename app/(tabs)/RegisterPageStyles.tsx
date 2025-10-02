@@ -4,10 +4,12 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#F8F9FA", 
-    justifyContent: "center", 
+    backgroundColor: "#ffe5ec", 
     alignItems: "center", 
-    padding: 24 
+    paddingHorizontal: 24,
+    paddingTop: 80, // เพิ่ม padding ด้านบนเพื่อให้มีที่ว่างจาก status bar
+    paddingBottom: 40,
+    width: "100%", // ทำให้ container เต็มความกว้าง
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -22,9 +24,9 @@ export const styles = StyleSheet.create({
     elevation: 8,
   },
   backButton: {
-    position: "absolute",
-    top: 60,
-    left: 20,
+    alignSelf: "flex-start", // <-- เพิ่ม: จัดให้ปุ่มชิดซ้าย
+    marginBottom: 30, // <-- เพิ่ม: เว้นระยะห่างด้านล่างปุ่ม
+    marginTop: -65, // <-- เพิ่ม: ดึงปุ่มขึ้นมาใกล้กับขอบบน
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -174,7 +176,7 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   registerButtonDisabled: {
-    backgroundColor: "rgba(255, 107, 129, 0.5)",
+    backgroundColor: "#ff8fab",
   },
   registerButtonText: {
     color: "#FFFFFF",
@@ -209,4 +211,10 @@ export const styles = StyleSheet.create({
   loginLinkDisabled: {
     color: "rgba(108, 92, 231, 0.5)",
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
 });

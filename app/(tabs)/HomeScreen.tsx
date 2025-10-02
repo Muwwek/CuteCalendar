@@ -108,10 +108,7 @@ export default function HomeScreen() {
                 <Ionicons name="mail" size={20} color="#3B82F6" />
                 <Text style={styles.statusText}>อีเมล: {userEmail}</Text>
               </View>
-              <View style={styles.statusItem}>
-                <Ionicons name="key" size={20} color="#F59E0B" />
-                <Text style={styles.statusText}>User ID: {userId}</Text>
-              </View>
+              
               <View style={styles.statusItem}>
                 <Ionicons name="time" size={20} color="#EF4444" />
                 <Text style={styles.statusText}>
@@ -135,7 +132,7 @@ export default function HomeScreen() {
           onPress={handleSetupWork}
         >
           <Ionicons name="construct-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.buttonText}>ตั้งค่างานหลัก</Text>
+          <Text style={styles.buttonText}>Calendar</Text>
         </TouchableOpacity>
 
         {/* ปุ่ม shortcut ไปหน้า Settings */}
