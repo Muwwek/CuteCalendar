@@ -27,6 +27,7 @@ export const styles = StyleSheet.create({
     borderBottomColor: "#ffccd9",
   },
   headerTitle: {
+    marginTop: 50,
     fontSize: 26,
     fontWeight: "bold",
     color: "#ff4d6d",
@@ -44,7 +45,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    marginTop: 12,
+    marginTop: 20,
     alignSelf: 'flex-start',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -500,6 +501,7 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   refreshButton: {
+    marginTop: 45,
     padding: 8,
     borderRadius: 8,
     backgroundColor: '#f7fafc',

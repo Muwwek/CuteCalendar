@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
   backButton: {
     alignSelf: "flex-start", // <-- เพิ่ม: จัดให้ปุ่มชิดซ้าย
     marginBottom: 30, // <-- เพิ่ม: เว้นระยะห่างด้านล่างปุ่ม
-    marginTop: -65, // <-- เพิ่ม: ดึงปุ่มขึ้นมาใกล้กับขอบบน
+    marginTop: -20, 
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.95)",
