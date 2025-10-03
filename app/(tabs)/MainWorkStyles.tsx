@@ -752,4 +752,10 @@ suggestionText: {
   color: '#718096',
   lineHeight: 18,
 },
+userInputText: {
+  fontSize: 14,
+  color: '#2d3748',
+  fontWeight: '600',
+  marginTop: 8,
+},
 });

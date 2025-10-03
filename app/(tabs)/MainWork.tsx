@@ -127,18 +127,36 @@ export default function CalendarScreen() {
         });
         
         const data = await response.json();
-        if (data.success && data.suggestions.length > 0) {
-          setPredictions(data.suggestions);
-          setShowPredictions(true);
-        } else {
-          setShowPredictions(false);
+        
+        let allSuggestions: string[] = [];
+        
+        // เพิ่มคำที่ผู้ใช้พิมพ์เองเป็นอันดับแรก
+        allSuggestions.push(text);
+        
+        // เพิ่มคำแนะนำจาก AI (ถ้ามีและไม่ซ้ำ)
+        if (data.success && data.suggestions && data.suggestions.length > 0) {
+          data.suggestions.forEach((suggestion: string) => {
+            if (suggestion !== text && !allSuggestions.includes(suggestion)) {
+              allSuggestions.push(suggestion);
+            }
+          });
         }
+        
+        // จำกัดจำนวนและกรองคำซ้ำ
+        const uniqueSuggestions = [...new Set(allSuggestions)].slice(0, 6);
+        
+        setPredictions(uniqueSuggestions);
+        setShowPredictions(uniqueSuggestions.length > 0);
+        
       } catch (error) {
-        // ไม่แสดง error สำหรับ real-time
-        setShowPredictions(false);
+        // ถ้า API error ให้ใช้แค่คำที่ผู้ใช้พิมพ์
+        console.log('AI Prediction error, using fallback');
+        setPredictions([text]);
+        setShowPredictions(true);
       }
     } else {
       setShowPredictions(false);
+      setPredictions([]);
     }
   };
 
@@ -765,8 +783,20 @@ export default function CalendarScreen() {
                             index < predictions.length - 1 && styles.predictionItemBorder
                           ]}
                         >
-                          <Ionicons name="bulb-outline" size={16} color="#ff4d6d" style={{marginRight: 8}} />
-                          <Text style={styles.predictionText}>{prediction}</Text>
+                          {prediction === newTaskTitle ? (
+                            // แสดงไอคอนพิเศษสำหรับคำที่ผู้ใช้พิมพ์
+                            <Ionicons name="create-outline" size={16} color="#48bb78" style={{marginRight: 8}} />
+                          ) : (
+                            // แสดงไอคอนปกติสำหรับคำแนะนำจาก AI
+                            <Ionicons name="bulb-outline" size={16} color="#ff4d6d" style={{marginRight: 8}} />
+                          )}
+                          <Text style={[
+                            styles.predictionText,
+                            prediction === newTaskTitle && styles.userInputText
+                          ]}>
+                            {prediction}
+                            {prediction === newTaskTitle && " (ที่คุณพิมพ์)"}
+                          </Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
