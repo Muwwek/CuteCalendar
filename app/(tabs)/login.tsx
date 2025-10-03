@@ -36,7 +36,7 @@ export default function LoginScreen() {
     }
   }, [message, registeredEmail]); // ✅ เปลี่ยน dependency array เป็นค่า primitive
 
-  const API_URL = "http://192.168.1.9:3000";
+  const API_URL = "http://192.168.1.108:3000";
 
   const handleLogin = async () => {
     // ... โค้ดส่วน handleLogin เหมือนเดิม ...

@@ -115,7 +115,7 @@ export default function SettingScreen() {
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
-  const API_URL = "http://192.168.1.9:3000";
+  const API_URL = "http://192.168.1.108:3000";
 
   // 🔄 ดึงข้อมูล tasks ทั้งหมดของ user
   const fetchTasks = async (currentUserId: number) => {
@@ -162,6 +162,40 @@ export default function SettingScreen() {
       setRefreshing(false);
     }
   }, [user_id]);
+
+  // เรียงลำดับ tasks ทั้งหมดตามวัน, priority และเวลา
+  const getSortedAndGroupedTasks = () => {
+    // เรียงลำดับตามวัน, priority และเวลา
+    const sortedTasks = [...tasks].sort((a, b) => {
+      // เรียงตามวันก่อน (จากใกล้วันปัจจุบันไปไกล)
+      const dateCompare = new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
+      if (dateCompare !== 0) return dateCompare;
+      
+      // ถ้าวันเดียวกัน ให้เรียงตาม priority
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+      const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+      
+      if (bPriority !== aPriority) {
+        return bPriority - aPriority; // เรียงจากสูงไปต่ำ
+      } else {
+        // ถ้า priority เท่ากัน ให้เรียงตามเวลาเริ่มต้น
+        return a.start_time.localeCompare(b.start_time);
+      }
+    });
+
+    // แบ่งกลุ่มงานตามวัน
+    const tasksByDate: { [key: string]: Task[] } = {};
+    sortedTasks.forEach(task => {
+      const dateKey = getLocalDateString(task.start_date);
+      if (!tasksByDate[dateKey]) {
+        tasksByDate[dateKey] = [];
+      }
+      tasksByDate[dateKey].push(task);
+    });
+
+    return tasksByDate;
+  };
 
   // เปิด Modal แก้ไข
   const openEditModal = (task: Task) => {
@@ -352,6 +386,8 @@ export default function SettingScreen() {
     );
   }
 
+  const tasksByDate = getSortedAndGroupedTasks();
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffe6ec" />
@@ -390,82 +426,92 @@ export default function SettingScreen() {
         }
       >
         <View style={styles.dailyTasksContainer}>
-          {tasks.length > 0 ? (
-            tasks.map((task) => {
-              const priorityStyle = getPriorityStyle(task.priority);
-              const statusStyle = getStatusStyle(task.status);
-              return (
-                <View key={task.id} style={styles.taskCard}>
-                  <View style={styles.taskCardHeader}>
-                    <Text style={styles.taskCardTitle}>{task.title}</Text>
-                    <View style={[styles.priorityBadge, { backgroundColor: priorityStyle.color }]}>
-                      <Text style={styles.priorityText}>{priorityStyle.text}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.taskCardBody}>
-                    <View style={styles.taskCardRow}>
-                      <Ionicons name="calendar-outline" size={16} color="#718096" />
-                      <Text style={styles.taskCardText}>
-                        {formatDateForDisplay(task.start_date)}
-                      </Text>
-                    </View>
-                    <View style={styles.taskCardRow}>
-                      <Ionicons name="time-outline" size={16} color="#718096" />
-                      <Text style={styles.taskCardText}>
-                        {task.start_time} - {task.end_time}
-                      </Text>
-                    </View>
-                    {task.description && (
-                      <View style={styles.taskCardRow}>
-                        <Ionicons name="reader-outline" size={16} color="#718096" />
-                        <Text style={styles.taskCardText}>{task.description}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.taskCardFooter}>
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      {task.category && (
-                        <View style={styles.tag}>
-                          <Ionicons name="folder-outline" size={14} color="#4A5568" />
-                          <Text style={styles.tagText}>{task.category}</Text>
-                        </View>
-                      )}
-                      <View style={styles.tag}>
-                        <Ionicons name={statusStyle.icon as any} size={14} color={statusStyle.color} />
-                        <Text style={[styles.tagText, { color: statusStyle.color }]}>
-                          {statusStyle.text}
-                        </Text>
-                      </View>
-                    </View>
-                    
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <TouchableOpacity
-                        onPress={() => openEditModal(task)}
-                        style={{
-                          backgroundColor: '#4299e1',
-                          padding: 8,
-                          borderRadius: 8,
-                        }}
-                      >
-                        <Ionicons name="pencil" size={18} color="white" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => openDeleteModal(task)}
-                        style={{
-                          backgroundColor: '#f56565',
-                          padding: 8,
-                          borderRadius: 8,
-                        }}
-                      >
-                        <Ionicons name="trash" size={18} color="white" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+          {Object.keys(tasksByDate).length > 0 ? (
+            Object.keys(tasksByDate).map((dateKey) => (
+              <View key={dateKey} style={styles.dateSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.dailyTasksTitle}>
+                    รายการงานวันที่: {formatDateForDisplay(dateKey)}
+                  </Text>
                 </View>
-              );
-            })
+                
+                {tasksByDate[dateKey].map((task) => {
+                  const priorityStyle = getPriorityStyle(task.priority);
+                  const statusStyle = getStatusStyle(task.status);
+                  return (
+                    <View key={task.id} style={styles.taskCard}>
+                      <View style={styles.taskCardHeader}>
+                        <Text style={styles.taskCardTitle}>{task.title}</Text>
+                        <View style={[styles.priorityBadge, { backgroundColor: priorityStyle.color }]}>
+                          <Text style={styles.priorityText}>{priorityStyle.text}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.taskCardBody}>
+                        <View style={styles.taskCardRow}>
+                          <Ionicons name="calendar-outline" size={16} color="#718096" />
+                          <Text style={styles.taskCardText}>
+                            {formatDateForDisplay(task.start_date)}
+                          </Text>
+                        </View>
+                        <View style={styles.taskCardRow}>
+                          <Ionicons name="time-outline" size={16} color="#718096" />
+                          <Text style={styles.taskCardText}>
+                            {task.start_time} - {task.end_time}
+                          </Text>
+                        </View>
+                        {task.description && (
+                          <View style={styles.taskCardRow}>
+                            <Ionicons name="reader-outline" size={16} color="#718096" />
+                            <Text style={styles.taskCardText}>{task.description}</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <View style={styles.taskCardFooter}>
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          {task.category && (
+                            <View style={styles.tag}>
+                              <Ionicons name="folder-outline" size={14} color="#4A5568" />
+                              <Text style={styles.tagText}>{task.category}</Text>
+                            </View>
+                          )}
+                          <View style={styles.tag}>
+                            <Ionicons name={statusStyle.icon as any} size={14} color={statusStyle.color} />
+                            <Text style={[styles.tagText, { color: statusStyle.color }]}>
+                              {statusStyle.text}
+                            </Text>
+                          </View>
+                        </View>
+                        
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          <TouchableOpacity
+                            onPress={() => openEditModal(task)}
+                            style={{
+                              backgroundColor: '#4299e1',
+                              padding: 8,
+                              borderRadius: 8,
+                            }}
+                          >
+                            <Ionicons name="pencil" size={18} color="white" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => openDeleteModal(task)}
+                            style={{
+                              backgroundColor: '#f56565',
+                              padding: 8,
+                              borderRadius: 8,
+                            }}
+                          >
+                            <Ionicons name="trash" size={18} color="white" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ))
           ) : (
             <View style={styles.noTasksCard}>
               <Text style={styles.noTasksText}>📋 ยังไม่มีงานในระบบ</Text>
@@ -524,6 +570,7 @@ export default function SettingScreen() {
                   <Picker.Item label="งาน" value="งาน" />
                   <Picker.Item label="ส่วนตัว" value="ส่วนตัว" />
                   <Picker.Item label="เรียน" value="เรียน" />
+                  <Picker.Item label="ออกกำลังกาย" value="ออกกำลังกาย" />
                 </Picker>
               </View>
 
@@ -748,8 +795,8 @@ export default function SettingScreen() {
             </View>
             
             <View style={styles.deleteModalBody}>
-              <Text style={styles.deleteModalText}>
-                คุณต้องการลบงาน "{taskToDelete?.title}" ใช่หรือไม่?
+              <Text style={styles.deleteModalText}>  
+                  คุณต้องการลบงาน "{taskToDelete?.title}" ใช่หรือไม่?  
               </Text>
               <Text style={styles.deleteModalSubText}>
                 การกระทำนี้ไม่สามารถย้อนกลับได้

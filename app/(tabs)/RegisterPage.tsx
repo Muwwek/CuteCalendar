@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"error" | "success" | "">("");
 
-  const API_URL = "http://192.168.1.9:3000";
+  const API_URL = "http://192.168.1.108:3000";
 
   const resetForm = (all: boolean = true) => {
     if (all) {

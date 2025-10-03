@@ -84,7 +84,7 @@ export const styles = StyleSheet.create({
   dailyTasksContainer: {
     marginTop: 24,
     paddingHorizontal: 16,
-    paddingBottom: 100, // เพิ่มพื้นที่ด้านล่างเผื่อปุ่ม FAB
+    paddingBottom: 100,
   },
   dailyTasksTitle: {
     fontSize: 18,
@@ -203,7 +203,7 @@ export const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    maxHeight: '90%', // จำกัดความสูงของ Modal
+    maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -227,6 +227,16 @@ export const styles = StyleSheet.create({
     marginTop: 10,
     fontWeight: '600',
   },
+  
+  // ✅ Input Container for Prediction Dropdown
+  inputContainer: {
+    position: 'relative',
+    marginBottom: 8,
+    zIndex: 1000,
+  },
+  colortext:{
+    color: '#757575',
+  },
   input: {
     backgroundColor: '#f7fafc',
     borderWidth: 1,
@@ -236,7 +246,50 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // ✅ Styles for new Date/Time/All-day picker
+  // ✅ Prediction Dropdown Styles
+  predictionDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#ffccd9',
+    borderRadius: 12,
+    marginTop: 4,
+    maxHeight: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 9999,
+  },
+
+  predictionScrollView: {
+    maxHeight: 200,
+  },
+
+  predictionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    backgroundColor: 'white',
+  },
+
+  predictionItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#f7fafc',
+  },
+
+  predictionText: {
+    color: '#2d3748',
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
+  },
+
+  // ✅ Styles for Date/Time/All-day picker
   switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -307,7 +360,6 @@ export const styles = StyleSheet.create({
     color: '#4a5568',
   },
 
-
   prioritySelector: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -330,13 +382,13 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   statusOption: {
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 20,
-      borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   statusOptionText: {
-      fontWeight: '600',
+    fontWeight: '600',
   },
 
   buttonRow: {
@@ -355,146 +407,291 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   pickerWrapper: {
-  borderWidth: 1,
-  borderColor: "#e2e8f0",
-  borderRadius: 8,
-  marginBottom: 15,
-  backgroundColor: "#fff",
-},
-picker: {
-  height: 50,
-  width: "100%",
-},
-deleteModalContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  padding: 20,
-},
-deleteModalContent: {
-  backgroundColor: 'white',
-  borderRadius: 16,
-  padding: 24,
-  width: '100%',
-  maxWidth: 320,
-  shadowColor: '#000',
-  shadowOffset: {
-    width: 0,
-    height: 2,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 8,
+    marginBottom: 15,
+    backgroundColor: "#fff",
   },
-  shadowOpacity: 0.25,
-  shadowRadius: 3.84,
-  elevation: 5,
-},
-deleteModalHeader: {
-  alignItems: 'center',
-  marginBottom: 20,
-},
-deleteModalTitle: {
-  fontSize: 20,
-  fontWeight: 'bold',
-  color: '#2d3748',
-  marginTop: 12,
-  textAlign: 'center',
-},
-deleteModalBody: {
-  marginBottom: 24,
-},
-deleteModalText: {
-  fontSize: 16,
-  color: '#4a5568',
-  textAlign: 'center',
-  marginBottom: 8,
-},
-deleteModalSubText: {
-  fontSize: 14,
-  color: '#718096',
-  textAlign: 'center',
-},
-deleteModalActions: {
+  picker: {
+    height: 50,
+    width: "100%",
+  },
+  deleteModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
+  },
+  deleteModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  deleteModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2d3748',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  deleteModalBody: {
+    marginBottom: 24,
+  },
+  deleteModalText: {
+    fontSize: 16,
+    color: '#4a5568',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  deleteModalSubText: {
+    fontSize: 14,
+    color: '#718096',
+    textAlign: 'center',
+  },
+  deleteModalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#e2e8f0',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#4a5568',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    backgroundColor: '#f56565',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  confirmDeleteButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  refreshButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f7fafc',
+  },
+  taskCardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  deleteButton: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: '#fed7d7',
+  },
+  addFirstTaskButton: {
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#ff4d6d',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  addFirstTaskText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  refreshTextButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#ff4d6d',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  refreshTextButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  refreshButtonText: {
+    fontSize: 14,
+    color: '#ff4d6d',
+    fontWeight: '600',
+  },
+
+  aiSuggestionContainer: {
+    backgroundColor: '#fff0f6',
+    borderRadius: 12,
+    padding: 12,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#ffccd9',
+  },
+  aiSuggestionText: {
+    fontSize: 14,
+    color: '#d53f8c',
+    fontWeight: '500',
+  },
+  addButton: {
+    backgroundColor: '#ff4d6d',
+    padding: 15,
+    margin: 20,
+    borderRadius: 25,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  
+  addButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  
+  taskTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  
+  modalButton: {
+    backgroundColor: '#ff4d6d',
+    padding: 15,
+    borderRadius: 10,
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  
+  modalButtonCancel: {
+    backgroundColor: '#666',
+    padding: 15,
+    borderRadius: 10,
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  
+  modalButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  autoSelectionIndicator: {
   flexDirection: 'row',
-  justifyContent: 'space-between',
-  gap: 12,
-},
-cancelButton: {
-  flex: 1,
-  backgroundColor: '#e2e8f0',
-  paddingVertical: 12,
-  borderRadius: 8,
   alignItems: 'center',
-},
-cancelButtonText: {
-  color: '#4a5568',
-  fontSize: 16,
-  fontWeight: '600',
-},
-confirmDeleteButton: {
-  flex: 1,
-  backgroundColor: '#f56565',
-  paddingVertical: 12,
-  borderRadius: 8,
-  alignItems: 'center',
-},
-confirmDeleteButtonText: {
-  color: 'white',
-  fontSize: 16,
-  fontWeight: '600',
-},
-sectionHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 16,
-},
-refreshButton: {
+  backgroundColor: '#fff0f6',
   padding: 8,
   borderRadius: 8,
-  backgroundColor: '#f7fafc',
+  marginBottom: 8,
+  borderWidth: 1,
+  borderColor: '#ffccd9',
 },
-taskCardActions: {
+autoSelectionText: {
+  fontSize: 12,
+  color: '#d53f8c',
+  marginLeft: 6,
+  fontWeight: '500',
+},
+autoSelectedIndicator: {
   flexDirection: 'row',
   alignItems: 'center',
-  gap: 8,
-},
-deleteButton: {
-  padding: 6,
-  borderRadius: 6,
-  backgroundColor: '#fed7d7',
-},
-addFirstTaskButton: {
-  marginTop: 12,
-  paddingVertical: 12,
-  paddingHorizontal: 24,
-  backgroundColor: '#ff4d6d',
+  backgroundColor: '#f0fff4',
+  padding: 8,
   borderRadius: 8,
-  alignItems: 'center',
+  marginBottom: 8,
+  borderWidth: 1,
+  borderColor: '#9ae6b4',
 },
-addFirstTaskText: {
-  color: 'white',
-  fontSize: 16,
-  fontWeight: '600',
+autoSelectedText: {
+  fontSize: 12,
+  color: '#38a169',
+  marginLeft: 6,
+  fontWeight: '500',
 },
-headerTop: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  width: '100%',
-},
+aiSuggestionSource: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ebf8ff',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#bee3f8',
+  },
+  aiSuggestionSourceText: {
+    fontSize: 12,
+    color: '#3182ce',
+    marginLeft: 6,
+    fontWeight: '500',
+  },
 
-// ปุ่มรีเฟรชแบบข้อความ
-refreshTextButton: {
-  marginTop: 12,
-  paddingVertical: 10,
-  paddingHorizontal: 20,
-  backgroundColor: '#ff4d6d',
-  borderRadius: 8,
-  alignItems: 'center',
-},
-
-refreshTextButtonText: {
-  color: 'white',
-  fontSize: 16,
-  fontWeight: '600',
+  // ✅ Styles สำหรับ Modal Actions (ปุ่มยกเลิก/บันทึก) - ใหม่
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: '#ff4d6d',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  dateSection: {
+  marginBottom: 24,
 },
 });

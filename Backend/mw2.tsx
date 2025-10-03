@@ -580,7 +580,7 @@ export default function CalendarScreen() {
               <Text style={styles.formLabel}>ชื่องาน</Text>
               <View style={styles.inputContainer}>
                 <TextInput 
-                  style={[styles.input, styles.colortext]} 
+                  style={styles.input} 
                   placeholder="เช่น ประชุมทีม, ส่งรายงาน..." 
                   value={newTaskTitle} 
                   onChangeText={handleTextPrediction}
@@ -638,7 +638,7 @@ export default function CalendarScreen() {
                 <Text style={{ 
                   marginLeft: 8, 
                   color: isAiLoading ? "#999" : "#ff4d6d", 
-                  fontWeight: "900",
+                  fontWeight: "bold",
                   fontSize: 14 
                 }}>
                   {isAiLoading ? "AI กำลังวิเคราะห์..." : "ให้ AI ช่วยแนะนำ"}
@@ -647,7 +647,7 @@ export default function CalendarScreen() {
 
               <Text style={styles.formLabel}>รายละเอียด (ถ้ามี)</Text>
               <TextInput 
-                style={[styles.input, {height: 80}, styles.colortext]} 
+                style={[styles.input, {height: 80}]} 
                 placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับงานนี้" 
                 value={newTaskDescription} 
                 onChangeText={setNewTaskDescription} 
