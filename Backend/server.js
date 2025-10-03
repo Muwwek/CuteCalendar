@@ -1,4 +1,5 @@
 // Backend/server.js
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise'); // ใช้ promise version
 const bcrypt = require('bcrypt');
@@ -10,10 +11,10 @@ app.use(express.json());
 
 // ==================== MySQL Pool ====================
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'Mew099183@',
-  database: 'userdb',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

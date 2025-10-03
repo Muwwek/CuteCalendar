@@ -6,14 +6,13 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
+        headerShown: false, // 🚀 ซ่อน Header ทุก Tab
         tabBarActiveTintColor: "#007AFF",
       }}
     >
       <Tabs.Screen
         name="HomeScreen"
         options={{
-          title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
@@ -34,20 +33,23 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="schedule"
         options={{
-          title: "ตาราง",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          href: null, // ซ่อนจาก Tab bar — เข้าได้เฉพาะ push จากหน้าอื่น
+          href: null, // ซ่อนจาก Tab bar
         }}
       />
       <Tabs.Screen
         name="MainWork"
+        options={{
+          href: null, // ซ่อนจาก Tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="ตาราง"
         options={{
           href: null, // ซ่อนจาก Tab bar
         }}

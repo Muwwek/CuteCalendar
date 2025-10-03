@@ -11,6 +11,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fffafc",
     borderRadius: 12,
     padding: 16,
+    marginTop: 30,
     marginBottom: 20,
     shadowColor: "#ff8fab",
     shadowOffset: {

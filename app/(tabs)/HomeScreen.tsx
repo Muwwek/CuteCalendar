@@ -83,9 +83,6 @@ export default function HomeScreen() {
           <View style={styles.userText}>
             <Text style={styles.welcomeText}>สวัสดี, {username}!</Text>
             <Text style={styles.emailText}>{userEmail}</Text>
-            <Text style={styles.loginTimeText}>
-              User ID: {userId} • {new Date().toLocaleString("th-TH")}
-            </Text>
           </View>
         </View>
       </View>
