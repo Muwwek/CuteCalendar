@@ -1530,6 +1530,297 @@ app.post("/ai/predict-task", async (req, res) => {
   }
 });
 
+// ==================== AI WORKLOAD ANALYSIS ENDPOINT ====================
+
+// วิเคราะห์ภาระงานและแนะนำตารางเวลา (ไม่รวมออกกำลังกายและส่วนตัว)
+app.post("/ai/analyze-workload", async (req, res) => {
+  try {
+    const { user_id, date } = req.body;
+    
+    if (!user_id || !date) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "ต้องการ user_id และ date" 
+      });
+    }
+
+    // ดึงงานทั้งหมดของวันนั้น
+    const [tasks] = await pool.query(
+      `SELECT * FROM tasks 
+       WHERE user_id = ? AND start_date = ? 
+       ORDER BY start_time ASC`,
+      [user_id, date]
+    );
+
+    // คำนวณเวลาทำงานทั้งหมด (ไม่รวมหมวดหมู่ "ออกกำลังกาย" และ "ส่วนตัว")
+    let totalWorkHours = 0;
+    const workTasks = [];
+    const excludedTasks = [];
+    
+    tasks.forEach(task => {
+      if (task.category === "ออกกำลังกาย" || task.category === "ส่วนตัว") {
+        excludedTasks.push(task);
+      } else {
+        workTasks.push(task);
+        
+        // คำนวณระยะเวลา
+        const start = new Date(`2000-01-01T${task.start_time}`);
+        const end = new Date(`2000-01-01T${task.end_time}`);
+        const durationHours = (end - start) / (1000 * 60 * 60);
+        totalWorkHours += durationHours;
+      }
+    });
+
+    // วิเคราะห์และให้คำแนะนำ
+    const analysis = analyzeWorkload(
+      totalWorkHours, 
+      workTasks, 
+      excludedTasks,
+      date
+    );
+
+    res.json({
+      success: true,
+      analysis,
+      summary: {
+        totalWorkHours: Math.round(totalWorkHours * 100) / 100,
+        totalTasks: workTasks.length,
+        excludedTasks: excludedTasks.length,
+        date: date
+      }
+    });
+
+  } catch (err) {
+    console.error('🔥 AI Workload Analysis error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: "AI analysis error", 
+      error: err.message 
+    });
+  }
+});
+
+// ฟังก์ชันวิเคราะห์ภาระงาน
+function analyzeWorkload(totalWorkHours, workTasks, excludedTasks, date) {
+  const today = new Date().toISOString().split('T')[0];
+  const isToday = date === today;
+  
+  let recommendations = [];
+  let warnings = [];
+  let availableSlots = [];
+  let workloadLevel = "ปกติ";
+
+  // วิเคราะห์ระดับภาระงาน
+  if (totalWorkHours > 10) {
+    workloadLevel = "หนักมาก ⚠️";
+    warnings.push(`งานเกิน 10 ชั่วโมง! (${totalWorkHours.toFixed(1)} ชม.)`);
+    recommendations.push("ควรลดงานลงหรือแบ่งงานบางส่วนไปทำวันอื่น");
+    recommendations.push("พักเบรกทุก 1 ชั่วโมง เพื่อป้องกันความเหนื่อยล้า");
+  } else if (totalWorkHours > 8) {
+    workloadLevel = "หนัก 🟠";
+    warnings.push(`งานค่อนข้างหนัก (${totalWorkHours.toFixed(1)} ชม.)`);
+    recommendations.push("ควรพักเบรกระหว่างงานเพื่อป้องกัน burnout");
+  } else if (totalWorkHours > 6) {
+    workloadLevel = "ปานกลาง 🟡";
+    recommendations.push("ภาระงานอยู่ในระดับที่เหมาะสม");
+  } else if (totalWorkHours > 0) {
+    workloadLevel = "เบา 🟢";
+    recommendations.push("มีเวลาว่างพอสมควร สามารถเพิ่มงานหรือกิจกรรมได้");
+  } else {
+    workloadLevel = "ว่างทั้งหมด 🎉";
+    recommendations.push("ไม่มีงานในวันนี้! สามารถวางแผนงานใหม่หรือพักผ่อนได้");
+  }
+
+  // วิเคราะห์การกระจายตัวของงาน
+  if (workTasks.length > 0) {
+    const firstTask = workTasks[0];
+    const lastTask = workTasks[workTasks.length - 1];
+    
+    const startTime = firstTask.start_time.substring(0, 5);
+    const endTime = lastTask.end_time.substring(0, 5);
+    
+    recommendations.push(`ทำงานตั้งแต่ ${startTime} ถึง ${endTime}`);
+  }
+
+  // ตรวจสอบว่ามีเวลาพักพอไหม
+  if (workTasks.length >= 3 && totalWorkHours > 6) {
+    recommendations.push("อย่าลืมพักเบรกทุก 2 ชั่วโมง");
+  }
+
+  // วิเคราะห์ช่องเวลาว่าง
+  availableSlots = findAvailableTimeSlots(workTasks);
+
+  // ตรวจสอบกิจกรรมส่วนตัวและการออกกำลังกาย
+  const exerciseCount = excludedTasks.filter(task => task.category === "ออกกำลังกาย").length;
+  const personalCount = excludedTasks.filter(task => task.category === "ส่วนตัว").length;
+
+  if (exerciseCount === 0 && totalWorkHours > 6) {
+    recommendations.push("ควรหาเวลาออกกำลังกายสัก 30 นาทีเพื่อสุขภาพ");
+  } else if (exerciseCount > 0) {
+    recommendations.push("มีการออกกำลังกายแล้ว เป็นเรื่องดี!");
+  }
+
+  if (personalCount === 0 && totalWorkHours > 8) {
+    recommendations.push("ควรมีเวลาส่วนตัวเพื่อพักผ่อนและฟื้นฟูพลังงาน");
+  }
+
+  // คำแนะนำพิเศษสำหรับวันนี้
+  if (isToday) {
+    if (totalWorkHours > 8) {
+      recommendations.push("คืนนี้ควรนอนให้เพียงพอ 7-8 ชั่วโมง");
+    }
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    if (currentHour >= 18 && workTasks.length > 0) {
+      recommendations.push("เย็นแล้ว ควรพักงานและผ่อนคลาย");
+    } else if (currentHour < 12 && totalWorkHours > 5) {
+      recommendations.push("ยังมีเวลาทำงานอีกพอสมควร จัดการเวลาดีๆ");
+    }
+  }
+
+  // แนะนำกิจกรรมในช่วงเวลาว่าง
+  if (availableSlots.length > 0 && totalWorkHours < 8) {
+    const freeTimeSuggestions = suggestFreeTimeActivities(availableSlots, totalWorkHours);
+    recommendations = recommendations.concat(freeTimeSuggestions);
+  }
+
+  // คำแนะนำตามเวลาของวัน
+  const timeBasedRecommendations = getTimeBasedRecommendations();
+  recommendations = recommendations.concat(timeBasedRecommendations);
+
+  return {
+    workloadLevel,
+    recommendations,
+    warnings,
+    availableSlots,
+    exerciseCount,
+    personalCount
+  };
+}
+
+// หาช่องเวลาว่าง
+function findAvailableTimeSlots(tasks) {
+  if (tasks.length === 0) {
+    return [{ start: "09:00", end: "17:00", duration: 8, description: "ว่างทั้งวัน" }];
+  }
+
+  const slots = [];
+  
+  // เวลาเริ่มต้นและสิ้นสุดของวัน
+  const dayStart = "09:00";
+  const dayEnd = "21:00";
+
+  // เรียงงานตามเวลา
+  const sortedTasks = [...tasks].sort((a, b) => 
+    a.start_time.localeCompare(b.start_time)
+  );
+
+  // ช่องว่างก่อนงานแรก
+  if (sortedTasks[0].start_time > dayStart) {
+    const duration = calculateDuration(dayStart, sortedTasks[0].start_time);
+    if (duration >= 0.5) { // อย่างน้อย 30 นาที
+      slots.push({
+        start: dayStart,
+        end: sortedTasks[0].start_time.substring(0, 5),
+        duration: duration,
+        description: `ว่างก่อนเริ่มงาน (${duration.toFixed(1)} ชม.)`
+      });
+    }
+  }
+
+  // ช่องว่างระหว่างงาน
+  for (let i = 0; i < sortedTasks.length - 1; i++) {
+    const currentEnd = sortedTasks[i].end_time;
+    const nextStart = sortedTasks[i + 1].start_time;
+    
+    if (currentEnd < nextStart) {
+      const duration = calculateDuration(currentEnd, nextStart);
+      if (duration >= 0.5) { // อย่างน้อย 30 นาที
+        slots.push({
+          start: currentEnd.substring(0, 5),
+          end: nextStart.substring(0, 5),
+          duration: duration,
+          description: `ว่างระหว่างงาน (${duration.toFixed(1)} ชม.)`
+        });
+      }
+    }
+  }
+
+  // ช่องว่างหลังงานสุดท้าย
+  const lastTask = sortedTasks[sortedTasks.length - 1];
+  if (lastTask.end_time < dayEnd) {
+    const duration = calculateDuration(lastTask.end_time, dayEnd);
+    if (duration >= 0.5) {
+      slots.push({
+        start: lastTask.end_time.substring(0, 5),
+        end: dayEnd,
+        duration: duration,
+        description: `ว่างหลังเลิกงาน (${duration.toFixed(1)} ชม.)`
+      });
+    }
+  }
+
+  return slots;
+}
+
+// คำนวณระยะเวลาระหว่างสองเวลา
+function calculateDuration(startTime, endTime) {
+  const start = new Date(`2000-01-01T${startTime}`);
+  const end = new Date(`2000-01-01T${endTime}`);
+  return (end - start) / (1000 * 60 * 60);
+}
+
+// แนะนำกิจกรรมในช่วงเวลาว่าง
+function suggestFreeTimeActivities(availableSlots, totalWorkHours) {
+  const suggestions = [];
+  
+  availableSlots.forEach(slot => {
+    if (slot.duration >= 1) {
+      // ช่วงเวลาว่างยาวกว่า 1 ชั่วโมง
+      if (slot.duration >= 2) {
+        suggestions.push(`ช่วง ${slot.start}-${slot.end}: อ่านหนังสือหรือเรียนออนไลน์`);
+      } else if (slot.duration >= 1.5) {
+        suggestions.push(`ช่วง ${slot.start}-${slot.end}: ดูหนังสั้นหรือพักผ่อน`);
+      } else {
+        suggestions.push(`ช่วง ${slot.start}-${slot.end}: ดื่มกาแฟหรือนั่งพัก`);
+      }
+    } else if (slot.duration >= 0.5) {
+      // ช่วงเวลาว่าง 30 นาที - 1 ชั่วโมง
+      suggestions.push(`ช่วง ${slot.start}-${slot.end}: ยืดเส้นยืดสายหรือนั่งสมาธิ`);
+    }
+  });
+
+  // คำแนะนำทั่วไปตามปริมาณงาน
+  if (totalWorkHours < 6 && availableSlots.length > 2) {
+    suggestions.push("มีเวลาว่างพอสมควร สามารถวางแผนงานเพิ่มได้");
+  } else if (totalWorkHours === 0) {
+    suggestions.push("วันนี้ว่างทั้งหมด! สามารถเพิ่มงานใหม่หรือพักผ่อนได้");
+  }
+
+  return suggestions;
+}
+
+// คำแนะนำตามเวลาของวัน
+function getTimeBasedRecommendations() {
+  const now = new Date();
+  const hour = now.getHours();
+  const recommendations = [];
+
+  if (hour >= 5 && hour < 12) {
+    recommendations.push("ตอนเช้า: เหมาะสำหรับงานที่ต้องการสมาธิสูง");
+  } else if (hour >= 12 && hour < 15) {
+    recommendations.push("ตอนบ่าย: หลังอาหารเที่ยง ควรทำงานเบาๆ ก่อน");
+  } else if (hour >= 15 && hour < 18) {
+    recommendations.push("ตอนเย็น: เหมาะสำหรับสรุปงานและวางแผนพรุ่งนี้");
+  } else {
+    recommendations.push("เวลาพักผ่อน: ควรทำกิจกรรมผ่อนคลาย");
+  }
+
+  return recommendations;
+}
+
 // Test
 app.get('/', (req, res) => res.json({ message: 'Server is running!' }));
 

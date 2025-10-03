@@ -694,4 +694,62 @@ aiSuggestionSource: {
   dateSection: {
   marginBottom: 24,
 },
+analysisContainer: {
+  backgroundColor: '#f0fff4',
+  borderRadius: 12,
+  padding: 16,
+  marginVertical: 8,
+  borderWidth: 1,
+  borderColor: '#9ae6b4',
+},
+analysisTitle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#2d3748',
+  marginBottom: 8,
+},
+analysisText: {
+  fontSize: 14,
+  color: '#4a5568',
+  lineHeight: 20,
+  marginBottom: 4,
+},
+warningText: {
+  fontSize: 14,
+  color: '#e53e3e',
+  fontWeight: '600',
+  lineHeight: 20,
+  marginTop: 8,
+},
+workloadHeavy: {
+  backgroundColor: '#fed7d7',
+  borderColor: '#feb2b2',
+},
+workloadMedium: {
+  backgroundColor: '#feebc8', 
+  borderColor: '#fbd38d',
+},
+workloadLight: {
+  backgroundColor: '#c6f6d5',
+  borderColor: '#9ae6b4',
+},
+suggestionCard: {
+  backgroundColor: '#fff0f6',
+  borderRadius: 12,
+  padding: 16,
+  marginVertical: 8,
+  borderWidth: 1,
+  borderColor: '#ffccd9',
+},
+suggestionTitle: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#d53f8c',
+  marginBottom: 4,
+},
+suggestionText: {
+  fontSize: 14,
+  color: '#718096',
+  lineHeight: 18,
+},
 });

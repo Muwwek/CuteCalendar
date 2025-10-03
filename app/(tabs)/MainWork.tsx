@@ -107,6 +107,11 @@ export default function CalendarScreen() {
   const [predictions, setPredictions] = useState<string[]>([]);
   const [showPredictions, setShowPredictions] = useState(false);
 
+  // --- State สำหรับ AI Workload Analysis ---
+  const [workloadAnalysis, setWorkloadAnalysis] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [lastAnalyzedDate, setLastAnalyzedDate] = useState<string | null>(null);
+
   const API_URL = "http://192.168.1.108:3000";
 
   // ====== ฟังก์ชันทำนายคำ Real-time ======
@@ -183,6 +188,81 @@ export default function CalendarScreen() {
     }
   };
 
+  // ====== ฟังก์ชัน AI Workload Analysis ======
+  const analyzeWorkload = async () => {
+    if (!user_id) return;
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch(`${API_URL}/ai/analyze-workload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          user_id: Number(user_id), 
+          date: selectedDate 
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setWorkloadAnalysis(data);
+        setLastAnalyzedDate(selectedDate); // บันทึกวันที่ที่วิเคราะห์ล่าสุด
+        // แสดงผลลัพธ์ใน Alert
+        showWorkloadAnalysis(data);
+      } else {
+        Alert.alert("ขออภัย", "ไม่สามารถวิเคราะห์ภาระงานได้ในขณะนี้");
+      }
+    } catch (error) {
+      console.error('Workload analysis error:', error);
+      Alert.alert("การเชื่อมต่อล้มเหลว", "ไม่สามารถเชื่อมต่อกับบริการวิเคราะห์ได้");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // แสดงผลการวิเคราะห์
+  const showWorkloadAnalysis = (data: any) => {
+    const { analysis, summary } = data;
+    
+    let message = `📊 วิเคราะห์ภาระงานวันที่ ${formatDateForDisplay(selectedDate)}\n\n`;
+    message += `⏱️ ทำงานทั้งหมด: ${summary.totalWorkHours} ชั่วโมง\n`;
+    message += `📝 จำนวนงาน: ${summary.totalTasks} งาน\n`;
+    message += `🚫 ไม่รวม: ออกกำลังกาย ${analysis.exerciseCount} งาน, ส่วนตัว ${analysis.personalCount} งาน\n\n`;
+    
+    message += `📈 ระดับภาระงาน: ${analysis.workloadLevel}\n\n`;
+    
+    if (analysis.warnings.length > 0) {
+      message += `⚠️ คำเตือน:\n`;
+      analysis.warnings.forEach((warning: string) => {
+        message += `• ${warning}\n`;
+      });
+      message += `\n`;
+    }
+    
+    message += `💡 คำแนะนำ:\n`;
+    analysis.recommendations.forEach((rec: string, index: number) => {
+      message += `${index + 1}. ${rec}\n`;
+    });
+
+    // แสดงช่องเวลาว่างถ้ามี
+    if (analysis.availableSlots.length > 0) {
+      message += `\n🕒 ช่วงเวลาว่าง:\n`;
+      analysis.availableSlots.forEach((slot: any, index: number) => {
+        message += `${index + 1}. ${slot.description}\n`;
+      });
+    }
+
+    Alert.alert(
+      "🤖 AI วิเคราะห์ภาระงาน",
+      message,
+      [
+        { text: "เข้าใจแล้ว", style: "default" },
+        { text: "ปิด", style: "cancel" }
+      ]
+    );
+  };
+
   // --- Logic การดึงข้อมูล ---
   const fetchTasks = async (currentUserId: number) => {
     try {
@@ -242,6 +322,11 @@ export default function CalendarScreen() {
     });
     
     setTasksForSelectedDay(sortedTasks);
+    
+    // เคลียร์การวิเคราะห์เมื่อเปลี่ยนวัน (ยกเว้นถ้าวันที่ยังคงเดิม)
+    if (lastAnalyzedDate !== selectedDate) {
+      setWorkloadAnalysis(null);
+    }
   }, [selectedDate, tasks]);
 
   // 🔄 ฟังก์ชันดึงข้อมูลใหม่ (Pull-to-Refresh)
@@ -467,7 +552,13 @@ export default function CalendarScreen() {
           <View style={styles.calendarContainer}>
             <Calendar
               current={selectedDate}
-              onDayPress={(day) => setSelectedDate(day.dateString)}
+              onDayPress={(day) => {
+                setSelectedDate(day.dateString);
+                // เคลียร์การวิเคราะห์เมื่อเลือกวันใหม่
+                if (lastAnalyzedDate !== day.dateString) {
+                  setWorkloadAnalysis(null);
+                }
+              }}
               markedDates={getMarkedDates()}
               theme={{
                 calendarBackground: "#ffffff",
@@ -491,68 +582,136 @@ export default function CalendarScreen() {
             <Text style={styles.dailyTasksTitle}>
               รายการงานวันที่: {formatDateForDisplay(selectedDate)}
             </Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity 
+                style={styles.refreshButton}
+                onPress={onRefresh}
+              >
+                <Ionicons name="refresh" size={20} color="#ff4d6d" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.refreshButton, isAnalyzing && { opacity: 0.5 }]}
+                onPress={analyzeWorkload}
+                disabled={isAnalyzing}
+              >
+                {isAnalyzing ? (
+                  <ActivityIndicator size="small" color="#ff4d6d" />
+                ) : (
+                  <Ionicons name="analytics" size={20} color="#ff4d6d" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* การวิเคราะห์ภาระงาน - แสดงเฉพาะเมื่อมีการวิเคราะห์สำหรับวันที่เลือกอยู่ */}
+          {workloadAnalysis && lastAnalyzedDate === selectedDate && (
             <TouchableOpacity 
-              style={styles.refreshButton}
-              onPress={onRefresh}
+              style={[
+                styles.analysisContainer,
+                workloadAnalysis.analysis.workloadLevel.includes('หนักมาก') && styles.workloadHeavy,
+                workloadAnalysis.analysis.workloadLevel.includes('หนัก') && styles.workloadHeavy,
+                workloadAnalysis.analysis.workloadLevel.includes('ปานกลาง') && styles.workloadMedium,
+                workloadAnalysis.analysis.workloadLevel.includes('เบา') && styles.workloadLight,
+              ]}
+              onPress={() => showWorkloadAnalysis(workloadAnalysis)}
             >
-              <Ionicons name="refresh" size={20} color="#ff4d6d" />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.analysisTitle}>
+                    🤖 วิเคราะห์ภาระงาน
+                  </Text>
+                  <Text style={styles.analysisText}>
+                    ⏱️ ทำงาน {workloadAnalysis.summary.totalWorkHours} ชม. จาก {workloadAnalysis.summary.totalTasks} งาน
+                  </Text>
+                  <Text style={styles.analysisText}>
+                    📈 ระดับ: {workloadAnalysis.analysis.workloadLevel}
+                  </Text>
+                  <Text style={styles.analysisText}>
+                    💡 {workloadAnalysis.analysis.recommendations[0]}
+                  </Text>
+                  {workloadAnalysis.analysis.warnings.length > 0 && (
+                    <Text style={styles.warningText}>
+                      ⚠️ {workloadAnalysis.analysis.warnings[0]}
+                    </Text>
+                  )}
+                </View>
+                <Ionicons name="information-circle" size={20} color="#718096" />
+              </View>
             </TouchableOpacity>
-          </View>
+          )}
 
-{tasksForSelectedDay.length > 0 ? (
-  tasksForSelectedDay.map((task) => {
-    const priorityStyle = getPriorityStyle(task.priority);
-    const statusStyle = getStatusStyle(task.status);
-    return (
-      <View key={task.id} style={styles.taskCard}>
-        <View style={styles.taskCardHeader}>
-          <Text style={styles.taskCardTitle}>{task.title}</Text>
-          <View style={styles.taskCardActions}>
-            <View style={[styles.priorityBadge, { backgroundColor: priorityStyle.color }]}>
-              <Text style={styles.priorityText}>{priorityStyle.text}</Text>
-            </View>
-          </View>
-        </View>
+          {/* ปุ่มแนะนำให้วิเคราะห์ - แสดงเฉพาะเมื่อยังไม่ได้วิเคราะห์สำหรับวันที่นี้ */}
+          {!workloadAnalysis && (
+            <TouchableOpacity 
+              style={styles.suggestionCard}
+              onPress={analyzeWorkload}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="bulb-outline" size={24} color="#ff4d6d" style={{ marginRight: 12 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.suggestionTitle}>อยากรู้ว่าวันนี้ยุ่งแค่ไหน?</Text>
+                  <Text style={styles.suggestionText}>กดเพื่อให้ AI วิเคราะห์ภาระงานและแนะนำตารางเวลา</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#a0aec0" />
+              </View>
+            </TouchableOpacity>
+          )}
 
-        <View style={styles.taskCardBody}>
-          <View style={styles.taskCardRow}>
-            <Ionicons name="time-outline" size={16} color="#718096" />
-            <Text style={styles.taskCardText}>{task.start_time} - {task.end_time}</Text>
-          </View>
-          {task.description && (
-            <View style={styles.taskCardRow}>
-              <Ionicons name="reader-outline" size={16} color="#718096" />
-              <Text style={styles.taskCardText}>{task.description}</Text>
+          {tasksForSelectedDay.length > 0 ? (
+            tasksForSelectedDay.map((task) => {
+              const priorityStyle = getPriorityStyle(task.priority);
+              const statusStyle = getStatusStyle(task.status);
+              return (
+                <View key={task.id} style={styles.taskCard}>
+                  <View style={styles.taskCardHeader}>
+                    <Text style={styles.taskCardTitle}>{task.title}</Text>
+                    <View style={styles.taskCardActions}>
+                      <View style={[styles.priorityBadge, { backgroundColor: priorityStyle.color }]}>
+                        <Text style={styles.priorityText}>{priorityStyle.text}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.taskCardBody}>
+                    <View style={styles.taskCardRow}>
+                      <Ionicons name="time-outline" size={16} color="#718096" />
+                      <Text style={styles.taskCardText}>{task.start_time} - {task.end_time}</Text>
+                    </View>
+                    {task.description && (
+                      <View style={styles.taskCardRow}>
+                        <Ionicons name="reader-outline" size={16} color="#718096" />
+                        <Text style={styles.taskCardText}>{task.description}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.taskCardFooter}>
+                    {task.category && (
+                      <View style={styles.tag}>
+                        <Ionicons name="folder-outline" size={14} color="#4A5568" />
+                        <Text style={styles.tagText}>{task.category}</Text>
+                      </View>
+                    )}
+                    <View style={styles.tag}>
+                      <Ionicons name={statusStyle.icon as any} size={14} color={statusStyle.color} />
+                      <Text style={[styles.tagText, {color: statusStyle.color}]}>{statusStyle.text}</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })
+          ) : (
+            <View style={styles.noTasksCard}>
+              <Text style={styles.noTasksText}>🎉 ไม่มีงานสำหรับวันที่เลือก</Text>
+              <TouchableOpacity 
+                style={styles.addFirstTaskButton}
+                onPress={openAddTaskModal}
+              >
+                <Text style={styles.addFirstTaskText}>เพิ่มงานแรกของคุณ</Text>
+              </TouchableOpacity>
             </View>
           )}
-        </View>
-
-        <View style={styles.taskCardFooter}>
-          {task.category && (
-            <View style={styles.tag}>
-              <Ionicons name="folder-outline" size={14} color="#4A5568" />
-              <Text style={styles.tagText}>{task.category}</Text>
-            </View>
-          )}
-          <View style={styles.tag}>
-            <Ionicons name={statusStyle.icon as any} size={14} color={statusStyle.color} />
-            <Text style={[styles.tagText, {color: statusStyle.color}]}>{statusStyle.text}</Text>
-          </View>
-        </View>
-      </View>
-    );
-  })
-) : (
-  <View style={styles.noTasksCard}>
-    <Text style={styles.noTasksText}>🎉 ไม่มีงานสำหรับวันที่เลือก</Text>
-    <TouchableOpacity 
-      style={styles.addFirstTaskButton}
-      onPress={openAddTaskModal}
-    >
-      <Text style={styles.addFirstTaskText}>เพิ่มงานแรกของคุณ</Text>
-    </TouchableOpacity>
-  </View>
-)}
 
         </View>
       </ScrollView>
